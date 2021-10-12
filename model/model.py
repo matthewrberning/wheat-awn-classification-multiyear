@@ -2,8 +2,6 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-print("hello")
-
 class Model():
 	def __init__(self):
 		#collect the VGG16 model architecture and weights (trained on
@@ -16,7 +14,14 @@ class Model():
 		"""
 		function to replace the last fully connected
 		layer of the model (1000 nodes for the
-		1000 classes of ImageNet with the 
+		1000 classes of ImageNet) with the custom layer
+		we need to solve our problem
+
+		Note: no activation function on the final linear
+		layer since we will be using nn.CrossEntropyLoss() 
+		as our loss function an that depends upon the raw
+		score of the nodes being output at the end of the 
+		forward pass
 
 		Keyword Argumens: 
 			verbose : bool, optional (default is False)
@@ -40,12 +45,7 @@ class Model():
 		#replace the original linear layer with ours
 		self.model.classifier[6] = terminal_layer
 
-		print(self.model)
+		if verbose: print(self.model)
 
 		return self.model
 
-m = Model()
-
-model = m.construct_model()
-
-print("\n\n-params-\n\n",model)
