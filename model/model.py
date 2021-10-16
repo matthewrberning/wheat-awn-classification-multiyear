@@ -3,12 +3,24 @@ import torch.nn as nn
 from torchvision import models
 
 class Model():
-	def __init__(self):
-		#collect the VGG16 model architecture and weights (trained on
-		#the 14million-strong ImageNet dataset) from Pytorch's Model Zoo
-		#source: https://pytorch.org/vision/stable/models.html
-		#paper: https://arxiv.org/abs/1409.1556
-		self.model = models.vgg16(pretrained=True)
+	"""class to hold model objects"""
+	def __init__(self, model_name='vgg16'):
+		"""
+		Keyword Argumens: 
+			model_name : str, optional (default is 'vgg16')
+				placeholder for future testing of multiple architectures
+				for fine-tuining 
+		"""
+
+		self.model_name = model_name
+
+		if model_name == 'vgg16':
+
+			#collect the VGG16 model architecture and weights (trained on
+			#the 14million-strong ImageNet dataset) from Pytorch's Model Zoo
+			#source: https://pytorch.org/vision/stable/models.html
+			#paper: https://arxiv.org/abs/1409.1556
+			self.model = models.vgg16(pretrained=True)
 		
 	def construct_model(self, verbose=False):
 		"""
@@ -36,16 +48,22 @@ class Model():
 			param.requires_grad = False
 
 		#collect the number of nodes to connect to in the
-		#second to last linear layer
-		input_features = self.model.classifier[6].in_features
+		#second to last linear layer (vgg16 it's layer 6)
+		input_features = self.model.classifier[-1].in_features
 
 		#construct our custom classification layer
 		terminal_layer = nn.Linear(input_features, 2)
 
-		#replace the original linear layer with ours
-		self.model.classifier[6] = terminal_layer
+		#replace the original final linear layer with ours
+		self.model.classifier[-1] = terminal_layer
 
+		#check for verbosity
 		if verbose: print(self.model)
 
 		return self.model
 
+print("running.")
+
+m = Model().construct_model(verbose=True)
+
+print('done.')
