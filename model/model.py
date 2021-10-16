@@ -62,8 +62,8 @@ class Model():
 
 		return self.model
 
-print("running.")
+# print("running.")
 
-m = Model().construct_model(verbose=True)
+# m = Model().construct_model(verbose=True)
 
-print('done.')
+# print('done.')

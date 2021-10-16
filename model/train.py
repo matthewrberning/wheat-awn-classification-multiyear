@@ -5,13 +5,13 @@ import time
 from model import Model
 from dataset import WheatAwnDataset
 
-from torch.utils.data import Dataloader
+from torch.utils.data import DataLoader
 from torchvision import transforms
 
-def expose():
+def expose(model, epoch):
 	print(f"EXPOSE  epoch: {epoch}")
 
-def train():
+def train(model, epoch):
 	print(f"[train] epoch: {epoch}")
 
 def test(model, epoch):
@@ -22,23 +22,25 @@ def main():
 	print('running')
 
 
-	#construct the datasets
-	dataset_path = '////'
+	# #construct the datasets
+	# dataset_path = '////'
 
-	#training data
-	train_data_csv = '////'
-	train_transform = transforms.Compose([/////])
-	training_data = WheatAwnDataset(csv_filepath=train_data_csv, dataset_dir=dataset_path, transform=train_transform)
-	train_dataloader = Dataloader(training_data, batch_size=64, shuffle=True)
+	# #training data
+	# train_data_csv = '////'
+	# train_transform = transforms.Compose([/////])
+	# training_data = WheatAwnDataset(csv_filepath=train_data_csv, dataset_dir=dataset_path, transform=train_transform)
+	# train_dataloader = Dataloader(training_data, batch_size=64, shuffle=True)
 
-	#testing data
-	test_data_csv = '////'
-	test_transform = transforms.Compose([///])
-	testing_data = WheatAwnDataset(csv_filepath=test_data_csv, dataset_dir=dataset_path, transform=test_transform)
-	test_dataloader = Dataloader(testing_data, batch_size=64, shuffle=True)
+	# #testing data
+	# test_data_csv = '////'
+	# test_transform = transforms.Compose([///])
+	# testing_data = WheatAwnDataset(csv_filepath=test_data_csv, dataset_dir=dataset_path, transform=test_transform)
+	# test_dataloader = Dataloader(testing_data, batch_size=64, shuffle=True)
 
 	#build the model
 	model = Model().construct_model(verbose=True)
+
+	epochs = 10
 
 	for epoch in range(epochs):
 
