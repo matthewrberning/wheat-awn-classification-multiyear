@@ -19,7 +19,7 @@ class WheatAwnDataset(Dataset):
 		"""
 
 		#make a dataframe from the csv file
-		self.dataset_df = pd.read(csv_filepath)
+		self.dataset_df = pd.read_csv(csv_filepath)
 
 		#set the path for the root folder to the images of the dataset
 		self.dataset_dir = dataset_dir
