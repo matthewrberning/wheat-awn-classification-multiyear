@@ -195,7 +195,7 @@ def main():
     dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
 
     #training data
-	train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_oversampled.csv'
+    train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_oversampled.csv'
     train_transform = transforms.Compose([transforms.RandomRotation(0.2),
                                           transforms.RandomCrop((224,224)),
                                           transforms.RandomHorizontalFlip(),
@@ -207,7 +207,7 @@ def main():
     train_dataloader = DataLoader(training_data, batch_size=8, shuffle=True)
 
     #validation data
-	validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
+    validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
     validation_transform = transforms.Compose([transforms.ToTensor(),
                                               transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
     
@@ -285,5 +285,5 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+    main()
 
