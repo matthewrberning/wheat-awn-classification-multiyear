@@ -230,7 +230,7 @@ def main():
     validation_loss_history, validation_accuracy_history = [], []
 
     #train the model across epochs
-    epochs = 5
+    epochs = 10
 
     for epoch in range(epochs):
 
