@@ -224,7 +224,7 @@ def main():
                                           transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
     
     training_data = WheatAwnDataset(csv_filepath=train_data_csv, dataset_dir=dataset_path, transform=train_transform)
-    train_dataloader = DataLoader(training_data, batch_size=8, shuffle=True)
+    train_dataloader = DataLoader(training_data, batch_size=32, shuffle=True)
 
     #validation data
     validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
@@ -232,7 +232,7 @@ def main():
                                               transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
     
     validation_data = WheatAwnDataset(csv_filepath=validation_data_csv, dataset_dir=dataset_path, transform=validation_transform)
-    validation_dataloader = DataLoader(validation_data, batch_size=8, shuffle=True)
+    validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
 
     #build the model
     model = Model().construct_model(verbose=False)
