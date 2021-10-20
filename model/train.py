@@ -11,10 +11,12 @@ import time
 from model import Model
 from dataset import WheatAwnDataset
 
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 def expose(model, epoch, dataloader, device, criterion, optimizer):
@@ -32,7 +34,13 @@ def expose(model, epoch, dataloader, device, criterion, optimizer):
     #make sure to not accumulate gradients
     with torch.no_grad():
 
-        for images, labels in dataloader:
+        #create progress bar with tqdm
+        progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc='EXPOSURE Progress: ')
+
+        for step, data in enumerate(progress_bar):
+
+            #unpack the data from the progress bar
+            images, labels = data[0], data[1]
 
             #send the tensors to the device (GPU)
             images = images.to(device)
@@ -84,7 +92,13 @@ def train(model, epoch, dataloader, device, criterion, optimizer):
     #track the correct predictions
     corrects = 0.0
 
-    for images, labels in dataloader:
+    #create progress bar with tqdm
+    progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc='[training] Progress: ')
+
+    for step, data in enumerate(progress_bar):
+
+        #unpack the data from the progress bar
+        images, labels = data[0], data[1]
 
         #send the tensors to the device (GPU)
         images = images.to(device)
@@ -144,7 +158,13 @@ def validate(model, epoch, dataloader, device, criterion, optimizer):
     #make sure to not accumulate gradients
     with torch.no_grad():
 
-        for images, labels in dataloader:
+        #create progress bar with tqdm
+        progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc='[validation] Progress: ')
+
+        for step, data in enumerate(progress_bar):
+
+            #unpack the data from the progress bar
+            images, labels = data[0], data[1]
 
             #send the tensors to the device (GPU)
             images = images.to(device)
