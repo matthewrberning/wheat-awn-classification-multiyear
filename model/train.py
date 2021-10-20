@@ -1,183 +1,178 @@
 import os 
 import sys
 import time
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
+
+import sys
+import time
+
 
 from model import Model
 from dataset import WheatAwnDataset
 
+import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
 def expose(model, epoch, dataloader, device, criterion, optimizer):
-	print(f"EXPOSE  epoch: {epoch}")
+    print(f"EXPOSE      epoch: {epoch}")
+    
+    #track the loss across the epoch
+    epoch_loss = 0.0
 
-	#track the loss across the epoch
-	epoch_loss = 0.0
+    #track the correct predictions
+    corrects = 0.0
 
-	#track the correct predictions
-	corrects = 0.0
+    #set model mode
+    model.eval()
 
-	#set model mode
-	model.eval()
+    #make sure to not accumulate gradients
+    with torch.no_grad():
 
-	#make sure to not accumulate gradients
-	with torch.no_grad():
+        for images, labels in dataloader:
 
-		for images, labels in dataloader:
+            #send the tensors to the device (GPU)
+            images = images.to(device)
+            labels = labels.to(device)
 
-			#send the tensors to the device (GPU)
-			images = images.to(device)
-			labels = labels.to(device)
+            images = images.float()
+            outputs = model(images) #float?
 
-			outputs = model(images)
+            #calculate the loss
+            loss = criterion(outputs, labels)
 
-			#calculate the loss
-			loss = criterion(outputs, labels)
+            #add to the loss accumulated over the epoch
+            epoch_loss += loss.item()
 
-			#reset our gradients
-			optimizer.zero_grad()
+            #find the predicted classes indicies
+            _, preds = torch.max(outputs, 1)
 
-			#propagate backward
-			loss.backward()
-
-			#update weights
-			optimizer.step()
-
-			#add to the loss accumulated over the epoch
-			epoch_loss += loss.item()
-
-			#find the predicted classes indicies
-			_, preds = torch.max(outputs, 1)
-
-			#track the correct predictions
-			corrects += torch.sum(preds == labels.data)
+            #track the correct predictions (.item()to collect just the value)
+            corrects += torch.sum(preds == labels.data).item()
 
 
-	#calculate the total loss across the iterations of the loader
-	epoch_loss = epoch_loss/len(dataloader)
+    #calculate the total loss across the iterations of the loader
+    epoch_loss = epoch_loss/len(dataloader)
 
-	#calculate the accuracy 
-	accuracy = (corrects.float()/len(dataloader.dataset))*100
+    #calculate the accuracy 
+    accuracy = (corrects/len(dataloader.dataset))*100
 
-	print(f"---> loss: {epoch_loss} accuracy: {accuracy}")
+    print(f"      ---> loss: {str(epoch_loss).rjust(7)} accuracy: {accuracy}")
 
-	return epoch_loss, accuracy
+    return epoch_loss, accuracy
 
 
 
 
 
 def train(model, epoch, dataloader, device, criterion, optimizer):
-	print(f"[train] epoch: {epoch}")
+    print(f"[train]     epoch: {epoch}")
 
-	#set model mode
-	model.train()
+    #set model mode
+    model.train()
 
-	#track the loss across the epoch
-	epoch_loss = 0.0
+    #track the loss across the epoch
+    epoch_loss = 0.0
 
-	#track the correct predictions
-	corrects = 0.0
+    #track the correct predictions
+    corrects = 0.0
 
-	for images, labels in dataloader:
+    for images, labels in dataloader:
 
-		#send the tensors to the device (GPU)
-		images = images.to(device)
-		labels = labels.to(device)
+        images = images.float()
 
-		outputs = model(images)
+        #send the tensors to the device (GPU)
+        images = images.to(device)
+        labels = labels.to(device)
 
-		#calculate the loss
-		loss = criterion(outputs, labels)
+        outputs = model(images)
 
-		#reset our gradients
-		optimizer.zero_grad()
+        #calculate the loss
+        loss = criterion(outputs, labels)
 
-		#propagate backward
-		loss.backward()
+        #reset our gradients
+        optimizer.zero_grad()
 
-		#update weights
-		optimizer.step()
+        #propagate backward
+        loss.backward()
 
-		#add to the loss accumulated over the epoch
-		epoch_loss += loss.item()
+        #update weights
+        optimizer.step()
 
-		#find the predicted classes indicies
-		_, preds = torch.max(outputs, 1)
+        #add to the loss accumulated over the epoch
+        epoch_loss += loss.item()
 
-		#track the correct predictions
-		corrects += torch.sum(preds == labels.data)
+        #find the predicted classes indicies
+        _, preds = torch.max(outputs, 1)
+
+        #track the correct predictions
+        corrects += torch.sum(preds == labels.data).item()
 
 
-	#calculate the total loss across the iterations of the loader
-	epoch_loss = epoch_loss/len(dataloader)
+    #calculate the total loss across the iterations of the loader
+    epoch_loss = epoch_loss/len(dataloader)
 
-	#calculate the accuracy 
-	accuracy = (corrects.float()/len(dataloader.dataset))*100
+    #calculate the accuracy 
+    accuracy = (corrects/len(dataloader.dataset))*100
 
-	print(f"---> loss: {epoch_loss} accuracy: {accuracy}")
+    print(f"      ---> loss: {str(epoch_loss).rjust(7)} accuracy: {accuracy}")
 
-	return epoch_loss, accuracy
+    return epoch_loss, accuracy
 
 def validate(model, epoch, dataloader, device, criterion, optimizer):
-	print(f"[test]  epoch: {epoch}")
+    print(f"[validate]  epoch: {epoch}")
 
-	#track the loss across the epoch
-	epoch_loss = 0.0
+    #track the loss across the epoch
+    epoch_loss = 0.0
 
-	#track the correct predictions
-	corrects = 0.0
+    #track the correct predictions
+    corrects = 0.0
 
-	#set model mode
-	model.eval()
+    #set model mode
+    model.eval()
 
-	#make sure to not accumulate gradients
-	with torch.no_grad():
+    #make sure to not accumulate gradients
+    with torch.no_grad():
 
-		for images, labels in dataloader:
+        for images, labels in dataloader:
 
-			#send the tensors to the device (GPU)
-			images = images.to(device)
-			labels = labels.to(device)
+            images = images.float()
 
-			outputs = model(images)
+            #send the tensors to the device (GPU)
+            images = images.to(device)
+            labels = labels.to(device)
 
-			#calculate the loss
-			loss = criterion(outputs, labels)
+            outputs = model(images)
 
-			#reset our gradients
-			optimizer.zero_grad()
+            #calculate the loss
+            loss = criterion(outputs, labels)
 
-			#propagate backward
-			loss.backward()
+            #add to the loss accumulated over the epoch
+            epoch_loss += loss.item()
 
-			#update weights
-			optimizer.step()
+            #find the predicted classes indicies
+            _, preds = torch.max(outputs, 1)
 
-			#add to the loss accumulated over the epoch
-			epoch_loss += loss.item()
-
-			#find the predicted classes indicies
-			_, preds = torch.max(outputs, 1)
-
-			#track the correct predictions
-			corrects += torch.sum(preds == labels.data)
+            #track the correct predictions
+            corrects += torch.sum(preds == labels.data).item()
 
 
-	#calculate the total loss across the iterations of the loader
-	epoch_loss = epoch_loss/len(dataloader)
+    #calculate the total loss across the iterations of the loader
+    epoch_loss = epoch_loss/len(dataloader)
 
-	#calculate the accuracy 
-	accuracy = (corrects.float()/len(dataloader.dataset))*100
+    #calculate the accuracy 
+    accuracy = (corrects/len(dataloader.dataset))*100
 
-	print(f"---> loss: {epoch_loss} accuracy: {accuracy}")
+    print(f"      ---> loss: {str(epoch_loss).rjust(7)} accuracy: {accuracy}")
 
-	return epoch_loss, accuracy
+    return epoch_loss, accuracy
 
 def main():
 
-	print('running')
+	print('training running')
 
 	#set the 'device' customary var for the GPU (or CPU if not available)
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -189,7 +184,7 @@ def main():
 	dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
 
 	#training data
-	train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_tiny.csv'
+	train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_oversampled.csv'
 	train_transform = transforms.Compose([transforms.RandomRotation(0.2),
                                       transforms.RandomCrop((224,224)), 
                                       transforms.RandomHorizontalFlip(), 
@@ -197,8 +192,8 @@ def main():
 	training_data = WheatAwnDataset(csv_filepath=train_data_csv, dataset_dir=dataset_path, transform=train_transform)
 	train_dataloader = DataLoader(training_data, batch_size=8, shuffle=True)
 
-	#testing data
-	validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns_tiny.csv'
+	#tvalidation data
+	validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
 	validation_transform = None
 	validation_data = WheatAwnDataset(csv_filepath=validation_data_csv, dataset_dir=dataset_path, transform=validation_transform)
 	validation_dataloader = DataLoader(validation_data, batch_size=8, shuffle=True)

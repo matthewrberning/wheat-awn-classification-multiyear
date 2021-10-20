@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -36,11 +37,17 @@ class WheatAwnDataset(Dataset):
 		""" collect images from the dataset """
 
 		#find the image path and label in the df
+		#note: class label (awned: 0, awnless: 1)
 		image_path = self.dataset_df.iloc[idx, 0]
 		label = self.dataset_df.iloc[idx, 1]
 
-		#read the image with torch
-		image = read_image(image_path)
+		#read the image with torch (returns a uint8 tensor)
+		#no transforms.ToTensor() needed
+		#https://github.com/pytorch/vision/issues/2788
+		# image = read_image(image_path)
+
+		#open image with PIL
+		image = Image.open(image_path)
 
 		#transform (data augmentation)
 		if self.transform:

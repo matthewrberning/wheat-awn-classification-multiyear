@@ -62,8 +62,3 @@ class Model():
 
 		return self.model
 
-# print("running.")
-
-# m = Model().construct_model(verbose=True)
-
-# print('done.')
