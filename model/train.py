@@ -217,21 +217,18 @@ def main():
     #training data
     print("building training set...")
     train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_oversampled.csv'
-    train_transform = transforms.Compose([transforms.RandomRotation(0.2),
-                                          transforms.RandomCrop((224,224)),
+    train_transform = transforms.Compose([transforms.RandomCrop((224,224)),
                                           transforms.RandomHorizontalFlip(),
                                           transforms.RandomVerticalFlip(),
-                                          transforms.ToTensor(),
-                                          transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
+                                          transforms.ToTensor()])
     
     training_data = WheatAwnDataset(csv_filepath=train_data_csv, dataset_dir=dataset_path, transform=train_transform)
     train_dataloader = DataLoader(training_data, batch_size=32, shuffle=True)
 
     #validation data
     print("building validation set...")
-    validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
-    validation_transform = transforms.Compose([transforms.ToTensor(),
-                                              transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
+    validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_val_awns_oversampled.csv'
+    validation_transform = transforms.Compose([transforms.ToTensor()])
     
     validation_data = WheatAwnDataset(csv_filepath=validation_data_csv, dataset_dir=dataset_path, transform=validation_transform)
     validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
