@@ -24,7 +24,7 @@ class WheatAwnDataset(Dataset):
 		#make a dataframe from the csv file
 		self.dataset_df = pd.read_csv(csv_filepath)
 
-		if verbose: print(f"data file {csv_filepath.split('/')[-1]} contains {len(self.dataset_df)} rows")
+		if verbose: print(f"data file \"{csv_filepath.split('/')[-1]}\" contains {len(self.dataset_df)} rows")
 
 		#set the path for the root folder to the images of the dataset
 		self.dataset_dir = dataset_dir
