@@ -215,6 +215,7 @@ def main():
     dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
 
     #training data
+    print("building training set...")
     train_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_train_awns_oversampled.csv'
     train_transform = transforms.Compose([transforms.RandomRotation(0.2),
                                           transforms.RandomCrop((224,224)),
@@ -227,6 +228,7 @@ def main():
     train_dataloader = DataLoader(training_data, batch_size=32, shuffle=True)
 
     #validation data
+    print("building validation set...")
     validation_data_csv = '/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/2019_test_awns.csv'
     validation_transform = transforms.Compose([transforms.ToTensor(),
                                               transforms.Normalize([77.7395, 83.9253, 53.3458], [48.1450, 49.1999, 36.7069])])
@@ -276,11 +278,14 @@ def main():
         
         if epoch%5 == 0 and epoch != 0:
             #save the model (parameters only) every 5 epochs
+            print(f"\n\nsaving model at epoch {epoch} path:\n     ../runs/{current_time}_model_epoch-{epoch}.pth")
             torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}.pth")
     
     #save final model and plot training history
     torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}.pth")
     
+    print("state_dict saved.. plotting accuracy/loss history")
+
     fig = plt.figure(figsize=(20,8))
 
     ax = fig.add_subplot(1, 2, 1)
@@ -303,6 +308,7 @@ def main():
     fig.suptitle(f"Training Run Loss/Accuracy History {current_time}")
     fig.savefig(f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_loss_accuracy-plot.jpg")
 
+    print("\n...terminating")
 
 if __name__ == '__main__':
     main()
