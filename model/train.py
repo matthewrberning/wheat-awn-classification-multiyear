@@ -245,11 +245,13 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr = 0.00001)
 
     #set up lists to track training progress
-    training_loss_history, training_accuracy_history = [],[]
+    training_loss_history, training_accuracy_history = [], []
     validation_loss_history, validation_accuracy_history = [], []
 
     #train the model across epochs
     epochs = 10
+
+    print(f"\n\ntraining across {epochs} epochs\n\n")
 
     for epoch in range(epochs):
 
@@ -269,17 +271,17 @@ def main():
         training_accuracy_history.append(accuracy)
 
         #validate
-        loss, accuracy = validate(model, epoch, validation_dataloader, device, criterion, optimizer)
-        validation_loss_history.append(loss)
-        validation_accuracy_history.append(accuracy)
+        val_loss, val_accuracy = validate(model, epoch, validation_dataloader, device, criterion, optimizer)
+        validation_loss_history.append(val_loss)
+        validation_accuracy_history.append(val_accuracy)
         
-        if epoch%5 == 0 and epoch != 0:
+        if epoch%1 == 0 and epoch != 0 and epoch != epochs:
             #save the model (parameters only) every 5 epochs
             print(f"\n\nsaving model at epoch {epoch} path:\n     ../runs/{current_time}_model_epoch-{epoch}.pth")
-            torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}.pth")
+            torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}_val-acc-{val_accuracy:.3f}.pth")
     
     #save final model and plot training history
-    torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}.pth")
+    torch.save(model.state_dict(), f"/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/runs/{current_time}_model_epoch-{epoch}_val-acc-{val_accuracy:.3f}.pth")
     
     print("state_dict saved.. plotting accuracy/loss history")
 
