@@ -129,6 +129,8 @@ def train(model, epoch, dataloader, device, criterion, optimizer):
         #track the correct predictions
         corrects += torch.sum(preds == labels.data).item()
 
+    #step learning rate
+    scheduler.step()
 
     #calculate the total loss across the iterations of the loader
     epoch_loss = epoch_loss/len(dataloader)
@@ -255,6 +257,10 @@ def main():
 
     #optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr = 0.00001)
+
+    #set up learning rate scheduler
+    lmbda = lambda epoch: 0.55 ** epoch
+    scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lmbda)
 
     #set up lists to track training progress
     training_loss_history, training_accuracy_history = [], []
