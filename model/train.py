@@ -314,15 +314,12 @@ def main():
             pickle.dump(history_dict, f)
         
         #save the model (parameters only) every so often
-        if epoch%1 == 0 and epoch != 0 and epoch != epochs:
+        if epoch%1 == 0:
             print(f"\n\nsaving model at epoch {epoch} path:\n     ../runs/{current_time}_model_epoch-{epoch}.pth")
             torch.save(model.state_dict(), os.path.join(dir_path, f"runs/{current_time}_model_epoch-{epoch+1}_val-acc-{val_accuracy:.3f}.pth"))
    
     
-    #save final model and plot training history
-    torch.save(model.state_dict(), os.path.join(dir_path, f"runs/{current_time}_model_epoch-{epoch+1}_val-acc-{val_accuracy:.3f}.pth"))
-    
-    print("\nfinal state_dict saved... plotting accuracy/loss history")
+    print("\nplotting accuracy/loss history")
 
     fig = plt.figure(figsize=(20,8))
 

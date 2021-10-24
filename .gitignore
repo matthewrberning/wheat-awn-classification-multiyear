@@ -1,0 +1,7 @@
+**/runs/*.pth
+**/runs/*.pkl
+**/runs/*.jpg
+**/data/*.csv
+**/model/__pycache__
+**/data/.ipynb_checkpoints
+**/model/.ipynb_checkpoints
