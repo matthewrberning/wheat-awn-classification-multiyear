@@ -81,7 +81,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer):
 
 
 
-def train(model, epoch, dataloader, device, criterion, optimizer):
+def train(model, epoch, dataloader, device, criterion, optimizer, scheduler):
     print(f"[train]     epoch: {epoch}")
 
     #set model mode
@@ -290,7 +290,7 @@ def main():
             exposure_validation_accuracy_history.append(accuracy)
 
         #train
-        loss, accuracy = train(model, epoch, train_dataloader, device, criterion, optimizer)
+        loss, accuracy = train(model, epoch, train_dataloader, device, criterion, optimizer, scheduler)
 
         #track the training history
         training_loss_history.append(loss)
