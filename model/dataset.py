@@ -45,6 +45,9 @@ class WheatAwnDataset(Dataset):
 		image_path = self.dataset_df.iloc[idx, 0]
 		label = self.dataset_df.iloc[idx, 1]
 
+		#we're also interested in the plot_id so collect/return that too
+		plot_id = self.dataset_df.iloc[idx, 2]
+
 		#read the image with torch (returns a uint8 tensor)
 		#no transforms.ToTensor() needed
 		#https://github.com/pytorch/vision/issues/2788
@@ -57,7 +60,7 @@ class WheatAwnDataset(Dataset):
 		if self.transform:
 			image = self.transform(image)
 
-		return image, label
+		return image, label, plot_id
 
 
 
