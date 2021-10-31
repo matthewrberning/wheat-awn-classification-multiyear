@@ -239,7 +239,8 @@ def main():
     #validation data
     print("building validation set...")
     validation_data_csv = os.path.join(dir_path,'data/2019_val_awns_oversampled.csv')
-    validation_transform = transforms.Compose([transforms.ToTensor()])
+    validation_transform = transforms.Compose([transforms.CenterCrop((224,224)),
+                                               transforms.ToTensor()])
     
     validation_data = WheatAwnDataset(csv_filepath=validation_data_csv,
                                       dataset_dir=dataset_path,
