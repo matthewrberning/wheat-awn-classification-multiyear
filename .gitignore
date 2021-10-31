@@ -2,6 +2,7 @@
 **/runs/*.pkl
 **/runs/*.jpg
 **/data/*.csv
+**/montages/
 **/__pycache__
 **/.ipynb_checkpoints
 **/.ipynb_checkpoints
