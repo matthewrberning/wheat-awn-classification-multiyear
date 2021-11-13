@@ -155,7 +155,7 @@ def model_prediction_montages(data_csv,
 
         for step, data in enumerate(progress_bar):
 
-        images, labels, plot_ids = data[0], data[1], data[2]
+            images, labels, plot_ids = data[0], data[1], data[2]
             
             if end_after:
                 if bb==end_after:
@@ -240,7 +240,7 @@ def model_prediction_montages(data_csv,
                                                       save_prefix, 
                                                       count_saves, 
                                                       save_dir)
-                            
+
                             print("plot saved, resetting")
                             count_saves+=1
                             bb+=b
