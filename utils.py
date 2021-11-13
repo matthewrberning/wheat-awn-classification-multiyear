@@ -136,7 +136,7 @@ def model_prediction_montages(data_csv,
     model_pth_name = model_pth.split('/')[-1] 
 
     #create the prefix to be added to each saved montage
-    save_prefix = f"{model_pth_name.split('.')[0]}_{'incorrects' if (find_incorrects==True) else 'corrects'}_{data_csv.split('.')[0]}"
+    save_prefix = f"{model_pth_name.split('.')[0]}_{'incorrects' if (find_incorrects==True) else 'corrects'}_in_{data_csv.split('/')[-1].split('.')[0]}_dataset"
 
     print("\n\ndata csv: ", data_csv)
     print("batch_size: ", batch_size)
