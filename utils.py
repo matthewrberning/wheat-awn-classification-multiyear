@@ -21,6 +21,19 @@ import torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+def tensor_to_image(tensor):
+    '''helper function to take a tensor and image-ize it'''
+    
+    #take the tensor representation of the image and numpyify it
+    image = tensor.clone().detach().cpu().numpy()
+    
+    #re order the dimensionality for matplotlib
+    image = image.transpose(1, 2, 0)
+    
+    image = image.clip(0,1)
+    
+    return image
+
 
 def add_subplot_border(ax, width=1, color=None ):
     '''helper function to add a border to the plot'''
