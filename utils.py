@@ -99,7 +99,7 @@ def model_prediction_montages(data_csv,
                               pkl_file_path, 
                               end_after=None, 
                               find_incorrects=True, 
-                              datset_path='/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/',
+                              dataset_path='/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/',
                               save_dir='/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/montages'):
 
     print(f"loading model from: {model_pth}")
