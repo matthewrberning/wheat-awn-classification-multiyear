@@ -179,7 +179,7 @@ def model_prediction_montages(data_csv,
 
 
             for index, prediction in enumerate(preds):
-              if find_incorrects:
+                if find_incorrects:
                     if prediction == labels[index]:
                         continue
                         #print("correct!")
@@ -215,7 +215,6 @@ def model_prediction_montages(data_csv,
                             imgs = []
                             predicted_label = []
                             groundtruth_label = []
-
                 else:
                     if prediction == labels[index]:
                         #print("correct!")
