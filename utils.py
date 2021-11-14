@@ -239,6 +239,7 @@ def build_conditional_montages(data_csv,
     print("save_prefix: ", save_prefix)
     print("end_after: ", end_after)
     print("find_incorrects: ", find_incorrects,"\n\n")
+    print("verbosity: ", verbose)
 
     #validate format
     if yesno("is the above format correct?"):
