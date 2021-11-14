@@ -377,7 +377,7 @@ if __name__ == '__main__':
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
 
-    print("GPU Chosen: ", str(deviceIDs[0]))
+    print("\n\nGPU Chosen: ", str(deviceIDs[0]),"\n\n")
 
     #use the fire module to make a CLI out of the montage function
     fire.Fire(build_conditional_montages)
