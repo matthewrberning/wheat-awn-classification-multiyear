@@ -223,7 +223,7 @@ def main():
 
     #training data
     print("building training set...")
-    train_data_csv = os.path.join(dir_path,'data/2019_train_awns_oversampled.csv')
+    train_data_csv = os.path.join(dir_path,'data/2019_train_awns_UNDERsampled.csv')
     print(train_data_csv)
     train_transform = transforms.Compose([transforms.RandomCrop((224,224)),
                                           transforms.RandomHorizontalFlip(),
@@ -260,7 +260,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr = 0.00001)
 
     #set up learning rate scheduler
-    lmbda = lambda epoch: 0.55 ** epoch
+    lmbda = lambda epoch: 0.95 ** epoch
     scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lmbda)
 
     #set up lists to track training progress
