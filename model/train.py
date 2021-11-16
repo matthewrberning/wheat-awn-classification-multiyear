@@ -249,7 +249,7 @@ def main():
     validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
 
     #build the model
-    model = Model().construct_model(verbose=False)
+    model = Model('vgg16').construct_model(verbose=False)
 
     model = model.to(device)
 
