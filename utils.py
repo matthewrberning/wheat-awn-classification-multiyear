@@ -153,7 +153,8 @@ def build_conditional_montages(data_csv,
                               batch_size, 
                               fig_title, 
                               model_pth,
-                              pkl_file_path, 
+                              pkl_file_path,
+                              model_name, 
                               end_after=None, 
                               find_incorrects=True, 
                               dataset_path='./data/preprocessed/',
@@ -181,6 +182,9 @@ def build_conditional_montages(data_csv,
         model_pth : string, required 
             the path to the model pth file to be used to make the predictions
 
+        model_name : string, required
+            the model (currently 'vgg16' or 'resnet50') architecture to use when loading
+
         pkl_file_path : string, required 
             the path to the pickled dictinary that contains the relationship between the 
             numeric representation of the plot_id and the string value
@@ -202,13 +206,16 @@ def build_conditional_montages(data_csv,
 
         verbose : bool, optional (default is False)
             control amount of output regarding saving, etc.
+
+        collect_class : string, optional (default is None)
+            option to control the collection of montages of a specific class only (i.e. '1' or '0')
             
     """
     print("\n\nbuilding montages...")
 
     #load up the model
     print(f"\nloading model from: {model_pth}")
-    saved_model = Model().construct_model(verbose=False)
+    saved_model = Model(model_name).construct_model(verbose=False)
     saved_model.load_state_dict(torch.load(model_pth))
     
     #send the model to the GPU
