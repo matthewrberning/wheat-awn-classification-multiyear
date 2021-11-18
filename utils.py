@@ -158,7 +158,8 @@ def build_conditional_montages(data_csv,
                               find_incorrects=True, 
                               dataset_path='./data/preprocessed/',
                               save_dir='./data/montages',
-                              verbose=False):
+                              verbose=False,
+                              collect_class=None):
     """
     function to make conditinal montages (i.e. montages of correctly classified images
     or montages of incorrectly classified images) of 50 images each that include the
@@ -239,6 +240,7 @@ def build_conditional_montages(data_csv,
     print("save_prefix: ", save_prefix)
     print("end_after: ", end_after)
     print("find_incorrects: ", find_incorrects,"\n\n")
+    print("collect_class: ", collect_class)
     print("verbosity: ", verbose)
 
     #validate format
@@ -289,78 +291,152 @@ def build_conditional_montages(data_csv,
 
 
                 for index, prediction in enumerate(preds):
+                    #are we looking for wrong predictions?
                     if find_incorrects:
                         if prediction == labels[index]:
-                            continue
                             #print("correct!")
+                            continue
 
                         else:
-                            #print("false!")
-                            imgs.append(tensor_to_image(images[index]))
-                            predicted_labels.append(prediction.detach().cpu().numpy())
-                            groundtruth_labels.append(labels[index].detach().cpu().numpy())
-                            plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
-                            pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
-                            b+=1 #add to breaker when we've accumulated another false preditcion
+                            #when looking for mistakes in a specific class
+                            if collect_class:
+                                if prediction == int(collect_class):
+                                    #print("found missed prediction class: ", prediction)
+                                    imgs.append(tensor_to_image(images[index]))
+                                    predicted_labels.append(prediction.detach().cpu().numpy())
+                                    groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                                    plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
+                                    pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
+                                    b+=1 #add to breaker when we've accumulated another false preditcion
 
-                            if b==50:
-                                #we've collected 50 (b == 50) to plot
-                                if verbose: print(f"resetting after {b}")
-                                save_plot_incorrects_grid(imgs, 
-                                                          predicted_labels, 
-                                                          groundtruth_labels, 
-                                                          plot_id_GT, 
-                                                          fig_title, 
-                                                          model_pth_name, 
-                                                          plot_id_dict, 
-                                                          pred_confs, 
-                                                          save_prefix, 
-                                                          count_saves, 
-                                                          save_dir)
+                                    if b==50:
+                                        #we've collected 50 (b == 50) to plot
+                                        if verbose: print(f"resetting after {b}")
+                                        save_plot_incorrects_grid(imgs, 
+                                                                  predicted_labels, 
+                                                                  groundtruth_labels, 
+                                                                  plot_id_GT, 
+                                                                  fig_title, 
+                                                                  model_pth_name, 
+                                                                  plot_id_dict, 
+                                                                  pred_confs, 
+                                                                  save_prefix, 
+                                                                  count_saves, 
+                                                                  save_dir)
 
-                                if verbose: print("plot saved, resetting")
-                                count_saves+=1
-                                bb+=b
-                                b = 0
-                                imgs = []
-                                predicted_label = []
-                                groundtruth_label = []
+                                        if verbose: print("plot saved, resetting")
+                                        count_saves+=1
+                                        bb+=b
+                                        b = 0
+                                        imgs = []
+                                        predicted_label = []
+                                        groundtruth_label = []
+                                        
+                            else:
+                                #print("false!")
+                                imgs.append(tensor_to_image(images[index]))
+                                predicted_labels.append(prediction.detach().cpu().numpy())
+                                groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                                plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
+                                pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
+                                b+=1 #add to breaker when we've accumulated another false preditcion
+
+                                if b==50:
+                                    #we've collected 50 (b == 50) to plot
+                                    if verbose: print(f"resetting after {b}")
+                                    save_plot_incorrects_grid(imgs, 
+                                                              predicted_labels, 
+                                                              groundtruth_labels, 
+                                                              plot_id_GT, 
+                                                              fig_title, 
+                                                              model_pth_name, 
+                                                              plot_id_dict, 
+                                                              pred_confs, 
+                                                              save_prefix, 
+                                                              count_saves, 
+                                                              save_dir)
+
+                                    if verbose: print("plot saved, resetting")
+                                    count_saves+=1
+                                    bb+=b
+                                    b = 0
+                                    imgs = []
+                                    predicted_label = []
+                                    groundtruth_label = []
+
                     else:
                         if prediction == labels[index]:
-                            #print("correct!")
-                            imgs.append(tensor_to_image(images[index]))
-                            predicted_labels.append(prediction.detach().cpu().numpy())
-                            groundtruth_labels.append(labels[index].detach().cpu().numpy())
-                            plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
-                            pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
-                            b+=1 #add to breaker when we've accumulated another CORRECT preditction
+                            #when looking for mistakes in a specific class
+                            if collect_class:
+                                if prediction == int(collect_class):
+                                    #print("correct!")
+                                    imgs.append(tensor_to_image(images[index]))
+                                    predicted_labels.append(prediction.detach().cpu().numpy())
+                                    groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                                    plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
+                                    pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
+                                    b+=1 #add to breaker when we've accumulated another CORRECT preditction
 
-                            if b==50:
-                                #we've collected 50 (b == 50) to plot
-                                if verbose: print(f"resetting after {b}")
-                                save_plot_incorrects_grid(imgs, 
-                                                          predicted_labels, 
-                                                          groundtruth_labels, 
-                                                          plot_id_GT, 
-                                                          fig_title, 
-                                                          model_pth_name, 
-                                                          plot_id_dict, 
-                                                          pred_confs, 
-                                                          save_prefix, 
-                                                          count_saves, 
-                                                          save_dir)
+                                    if b==50:
+                                        #we've collected 50 (b == 50) to plot
+                                        if verbose: print(f"resetting after {b}")
+                                        save_plot_incorrects_grid(imgs, 
+                                                                  predicted_labels, 
+                                                                  groundtruth_labels, 
+                                                                  plot_id_GT, 
+                                                                  fig_title, 
+                                                                  model_pth_name, 
+                                                                  plot_id_dict, 
+                                                                  pred_confs, 
+                                                                  save_prefix, 
+                                                                  count_saves, 
+                                                                  save_dir)
 
-                                if verbose: print("plot saved, resetting")
-                                count_saves+=1
-                                bb+=b
-                                b = 0
-                                imgs = []
-                                predicted_label = []
-                                groundtruth_label = []
+                                        if verbose: print("plot saved, resetting")
+                                        count_saves+=1
+                                        bb+=b
+                                        b = 0
+                                        imgs = []
+                                        predicted_label = []
+                                        groundtruth_label = []
+                            else:
+                                #print("correct!")
+                                imgs.append(tensor_to_image(images[index]))
+                                predicted_labels.append(prediction.detach().cpu().numpy())
+                                groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                                plot_id_GT.append(plot_ids[index].detach().cpu().numpy())
+                                pred_confs.append(soft_preds[index].cpu().numpy()[prediction])
+                                b+=1 #add to breaker when we've accumulated another CORRECT preditction
+
+                                if b==50:
+                                    #we've collected 50 (b == 50) to plot
+                                    if verbose: print(f"resetting after {b}")
+                                    save_plot_incorrects_grid(imgs, 
+                                                              predicted_labels, 
+                                                              groundtruth_labels, 
+                                                              plot_id_GT, 
+                                                              fig_title, 
+                                                              model_pth_name, 
+                                                              plot_id_dict, 
+                                                              pred_confs, 
+                                                              save_prefix, 
+                                                              count_saves, 
+                                                              save_dir)
+
+                                    if verbose: print("plot saved, resetting")
+                                    count_saves+=1
+                                    bb+=b
+                                    b = 0
+                                    imgs = []
+                                    predicted_label = []
+                                    groundtruth_label = []
+                            
 
                         else:
                             #print("false!")
                             continue
+
+
     else:
         print("\n\n..need to reconfigure!")
         return
