@@ -3,7 +3,7 @@ import sys
 import time
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
-sys.path.append("..")
+# sys.path.append("..")
 
 import time
 import argparse
@@ -11,7 +11,7 @@ import argparse
 
 from model import Model
 from dataset import WheatAwnDataset
-from utils import yesno
+from .. import utils
 
 
 import torch
