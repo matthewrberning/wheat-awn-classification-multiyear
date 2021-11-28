@@ -6,10 +6,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
 
 import sys
 import time
+import argparse
 
 
 from model import Model
 from dataset import WheatAwnDataset
+from utils import yesno
 
 
 import torch
@@ -203,9 +205,9 @@ def validate(model, epoch, dataloader, device, criterion, optimizer):
 
     return epoch_loss, accuracy
 
-def main():
+def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lambda, batch_size):
 
-    print('running...\n\n')
+    print('\n\nrunning...\n\n')
 
     #capture the time at the start of the run
     current_time = time.strftime("%Y-%m-%d-%H_%M_%S")
@@ -223,7 +225,7 @@ def main():
 
     #training data
     print("building training set...")
-    train_data_csv = os.path.join(dir_path,'data/2019_train_awns_UNDERsampled.csv')
+    train_data_csv = os.path.join(dir_path, train_csv_path)
     print(train_data_csv)
     train_transform = transforms.Compose([transforms.RandomCrop((224,224)),
                                           transforms.RandomHorizontalFlip(),
@@ -234,11 +236,11 @@ def main():
                                     dataset_dir=dataset_path,
                                     transform=train_transform)
 
-    train_dataloader = DataLoader(training_data, batch_size=32, shuffle=True)
+    train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 
     #validation data
     print("building validation set...")
-    validation_data_csv = os.path.join(dir_path,'data/2019_val_awns_oversampled.csv')
+    validation_data_csv = os.path.join(dir_path, val_csv_path)
     validation_transform = transforms.Compose([transforms.CenterCrop((224,224)),
                                                transforms.ToTensor()])
     
@@ -249,7 +251,7 @@ def main():
     validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
 
     #build the model
-    model = Model('vgg16').construct_model(verbose=False)
+    model = Model(model_name).construct_model(verbose=False)
 
     model = model.to(device)
 
@@ -257,10 +259,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     #optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr = 0.00001)
+    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
     #set up learning rate scheduler
-    lmbda = lambda epoch: 0.95 ** epoch
+    lmbda = lambda epoch: lr_lambda ** epoch
     scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lmbda)
 
     #set up lists to track training progress
@@ -271,7 +273,6 @@ def main():
     exposure_validation_loss_history, exposure_validation_accuracy_history = [], []
 
     #train the model across epochs
-    epochs = 10
     print(f"\n\ntraining across {epochs} epochs\n\n")
 
     for epoch in range(epochs):
@@ -356,6 +357,33 @@ def main():
 
     print("\n...terminating")
 
+
+def assign_arguments():
+    parser = argparse.ArgumentParser(description="awn/awnless training script using either vgg16 or resnet")
+    parser.add_argument('--model_name', type=str, default='vgg16', required=False)
+    parser.add_argument('--train_csv_path', type=str, default='data/2019_train_awns_UNDERsampled.csv', required=False)
+    parser.add_argument('--val_csv_path', type=str, default='data/2019_val_awns_oversampled.csv', required=False)
+    parser.add_argument('--epochs', type=int, default=10, required=False)
+    parser.add_argument('--learning_rate', type=float, default=0.00001, required=False)
+    parser.add_argument('--lr_lambda', type=float, default=0.95, required=False)
+    parser.add_argument('--batch_size', type=int, default=32, required=False)
+
+
 if __name__ == '__main__':
-    main()
+
+    args = assign_arguments()
+
+    print()
+
+
+    if yesno("is the above format correct?"):
+        main(model=args.model_name, 
+             train_csv_path=args.train_csv_path, 
+             val_csv_path=args.val_csv_path, 
+             epochs=args.epochs,
+             learning_rate=args.learning_rate, 
+             lr_lambda=args.lr_lambda, batch_size=args.batch_size)
+
+    else:
+        sys.exit("...\n\n\n")
 
