@@ -11,7 +11,7 @@ import argparse
 
 from model import Model
 from dataset import WheatAwnDataset
-from utils import yesno
+from ..utils import yesno
 
 
 import torch
@@ -373,7 +373,14 @@ if __name__ == '__main__':
 
     args = assign_arguments()
 
-    print()
+    print("-arguments supplied/defaulted-")
+    print("--model_name: ", args.model_name)
+    print("--train_csv_path: ", args.train_csv_path)
+    print("--val_csv_path: ", args.val_csv_path)
+    print("--epochs: ", args.epochs)
+    print("--learning_rate: ", args.learning_rate)
+    print("--lr_lambda", args.lr_lambda)
+    print("--batch_size", args.batch_size)
 
 
     if yesno("is the above format correct?"):
