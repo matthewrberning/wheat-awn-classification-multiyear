@@ -3,11 +3,10 @@ import os
 import sys
 import time
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
 
 import time
 import argparse
-
 
 from model.model import Model
 from data.dataset import WheatAwnDataset
@@ -18,6 +17,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
+import GPUtil
 import pickle
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -372,19 +372,31 @@ def assign_arguments():
 
 if __name__ == '__main__':
 
+    #find the correct GPU -and use it!
+    deviceIDs = GPUtil.getAvailable(order = 'first', 
+                                    limit = 1, 
+                                    maxLoad = 0.3, 
+                                    maxMemory = 0.3, 
+                                    includeNan=False, 
+                                    excludeID=[], 
+                                    excludeUUID=[])
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
+    print("\n\nGPU Chosen: ", str(deviceIDs[0]),"\n\n")
+
     args = assign_arguments()
 
-    print("-arguments supplied/defaulted-")
-    print("--model_name: ", args.model_name)
-    print("--train_csv_path: ", args.train_csv_path)
-    print("--val_csv_path: ", args.val_csv_path)
-    print("--epochs: ", args.epochs)
-    print("--learning_rate: ", args.learning_rate)
-    print("--lr_lambda", args.lr_lambda)
-    print("--batch_size", args.batch_size)
+    print("\n\n\n-arguments supplied/defaulted-\n")
+    print("    --model_name: ", args.model_name)
+    print("    --train_csv_path: ", args.train_csv_path)
+    print("    --val_csv_path: ", args.val_csv_path)
+    print("    --epochs: ", args.epochs)
+    print("    --learning_rate: ", args.learning_rate)
+    print("    --lr_lambda", args.lr_lambda)
+    print("    --batch_size", args.batch_size,"\n\n")
 
 
-    if yesno("is the above format correct?"):
+    if yesno("are the training conditions above correct?"):
         main(model=args.model_name, 
              train_csv_path=args.train_csv_path, 
              val_csv_path=args.val_csv_path, 
@@ -393,5 +405,5 @@ if __name__ == '__main__':
              lr_lambda=args.lr_lambda, batch_size=args.batch_size)
 
     else:
-        sys.exit("...\n\n\n")
+        sys.exit("\n\n\n...\n\n\n")
 
