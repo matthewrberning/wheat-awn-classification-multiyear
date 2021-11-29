@@ -360,13 +360,14 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
 
 def assign_arguments():
     parser = argparse.ArgumentParser(description="awn/awnless training script using either vgg16 or resnet")
-    parser.add_argument('--model_name', type=str, default='vgg16')
+    parser.add_argument('--model_name', type=str, default='vgg16', required=False)
     parser.add_argument('--train_csv_path', type=str, default='data/2019_train_awns_UNDERsampled.csv', required=False)
     parser.add_argument('--val_csv_path', type=str, default='data/2019_val_awns_oversampled.csv', required=False)
     parser.add_argument('--epochs', type=int, default=10, required=False)
     parser.add_argument('--learning_rate', type=float, default=0.00001, required=False)
     parser.add_argument('--lr_lambda', type=float, default=0.95, required=False)
     parser.add_argument('--batch_size', type=int, default=32, required=False)
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
