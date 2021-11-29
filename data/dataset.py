@@ -33,7 +33,7 @@ class WheatAwnDataset(Dataset):
 		self.transform = transform
 
 		#create targets variable with labels
-		self.targets = dataset_df['awn_label'].tolist()
+		self.targets = self.dataset_df['awn_label'].tolist()
 
 	def __len__(self):
 		""" get the size of the dataframe """
