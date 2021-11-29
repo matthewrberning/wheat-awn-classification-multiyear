@@ -7,6 +7,8 @@ import argparse
 from model.model import Model
 from model.dataset import WheatAwnDataset
 
+from input import yesno
+
 import fire
 import PIL
 import pickle
@@ -21,46 +23,10 @@ import torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-def tensor_to_image(tensor):
-    '''
-    helper function to take a tensor and image-ize it
-
-    input: tensor - (torch tensor) a tensorized image
-
-    output: image - (numpy array) the image as a clipped/transposed numpy array
-    '''
-    
-    #take the tensor representation of the image and numpyify it
-    image = tensor.clone().detach().cpu().numpy()
-    
-    #re order the dimensionality for matplotlib
-    image = image.transpose(1, 2, 0)
-    
-    image = image.clip(0,1)
-    
-    return image
 
 
-def yesno(question):
-    """
-    Simple Yes/No Function.
 
-    input: question - (string) the question to be responded to with (y/n)
 
-    returns True if y/Y
-    returns False if n/N
-
-    (otherwise recurses for valid answer)
-    from
-    """
-    prompt = f'{question} (y/n): '
-    ans = input(prompt).strip().lower()
-    if ans not in ['y', 'n']:
-        print(f'{ans} is invalid, please try again...')
-        return yesno(question)
-    if ans == 'y':
-        return True
-    return False
 
 
 def add_subplot_border(ax, width=1, color=None ):
@@ -456,7 +422,13 @@ def build_conditional_montages(data_csv,
 if __name__ == '__main__':
 
     #find the correct GPU -and use it!
-    deviceIDs = GPUtil.getAvailable(order = 'first', limit = 1, maxLoad = 0.3, maxMemory = 0.3, includeNan=False, excludeID=[], excludeUUID=[])
+    deviceIDs = GPUtil.getAvailable(order = 'first', 
+                                    limit = 1, 
+                                    maxLoad = 0.3, 
+                                    maxMemory = 0.3, 
+                                    includeNan=False, 
+                                    excludeID=[], 
+                                    excludeUUID=[])
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
 
