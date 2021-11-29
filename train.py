@@ -9,9 +9,9 @@ import time
 import argparse
 
 
-from model import Model
-from dataset import WheatAwnDataset
-from .. import utils
+from model.model import Model
+from data.dataset import WheatAwnDataset
+from utils.input import yesno
 
 
 import torch
