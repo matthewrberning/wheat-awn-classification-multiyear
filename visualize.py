@@ -1,13 +1,13 @@
-#matthew berning
+#matthew berning - GWU, 2021
 import os
 import sys
 import time
 import argparse
 
 from model.model import Model
-from model.dataset import WheatAwnDataset
-
-from input import yesno
+from data.dataset import WheatAwnDataset
+from utils.input import yesno
+from utils.tensor_operations import tensor_to_image
 
 import fire
 import PIL

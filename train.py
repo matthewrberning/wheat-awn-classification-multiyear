@@ -1,9 +1,9 @@
+#matthew berning - GWU, 2021
 import os 
 import sys
 import time
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0" #set the GPU to use during training
-# sys.path.append("..")
 
 import time
 import argparse

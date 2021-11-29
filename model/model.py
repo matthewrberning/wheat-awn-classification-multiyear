@@ -1,3 +1,4 @@
+#matthew berning - GWU, 2021
 import torch
 import torch.nn as nn
 from torchvision import models
