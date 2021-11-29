@@ -248,6 +248,10 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
                                       dataset_dir=dataset_path,
                                       transform=validation_transform)
 
+    print("\n\n",dict(Counter(validation_data.targets)))
+
+    sys.exit("\n\n\n...\n\n\n")
+
     validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
 
     #build the model
@@ -382,11 +386,11 @@ if __name__ == '__main__':
                                     excludeUUID=[])
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
-    print("\n\nGPU Chosen: ", str(deviceIDs[0]),"\n\n")
+    print("\n\nGPU Chosen: ", str(deviceIDs[0]))
 
     args = assign_arguments()
 
-    print("\n\n\n-arguments supplied/defaulted-\n")
+    print("\n\n-arguments supplied/defaulted-\n")
     print("    --model_name: ", args.model_name)
     print("    --train_csv_path: ", args.train_csv_path)
     print("    --val_csv_path: ", args.val_csv_path)
