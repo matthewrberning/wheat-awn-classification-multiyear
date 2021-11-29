@@ -23,7 +23,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from collections import Counter
 
-def expose(model, epoch, dataloader, device, criterion, optimizer):
+def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts, mode):
     print(f"EXPOSE      epoch: {epoch}")
     
     #track the loss across the epoch
@@ -35,6 +35,9 @@ def expose(model, epoch, dataloader, device, criterion, optimizer):
     #set model mode
     model.eval()
 
+    if mode == 'val':
+        majority_count = 0
+
     #make sure to not accumulate gradients
     with torch.no_grad():
 
@@ -42,6 +45,10 @@ def expose(model, epoch, dataloader, device, criterion, optimizer):
         progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc='EXPOSURE Progress: ')
 
         for step, data in enumerate(progress_bar):
+
+            if mode == 'val':
+                if majority_count == class_counts[0]:
+                    break
 
             #unpack the data from the progress bar
             images, labels = data[0], data[1]
@@ -64,6 +71,10 @@ def expose(model, epoch, dataloader, device, criterion, optimizer):
 
             #track the correct predictions (.item()to collect just the value)
             corrects += torch.sum(preds == labels.data).item()
+
+            if mode == 'val' and labels[0].item() == 0:
+                print("adding to majority count!!!!")
+                majority_count += 1
 
 
     #calculate the total loss across the iterations of the loader
@@ -149,7 +160,7 @@ def train(model, epoch, dataloader, device, criterion, optimizer, scheduler):
 
     return epoch_loss, accuracy
 
-def validate(model, epoch, dataloader, device, criterion, optimizer):
+def validate(model, epoch, dataloader, device, criterion, optimizer, class_counts):
     print(f"[validate]  epoch: {epoch}")
 
     #track the loss across the epoch
@@ -160,6 +171,9 @@ def validate(model, epoch, dataloader, device, criterion, optimizer):
 
     #set model mode
     model.eval()
+
+    #count up to parity with the minority class
+    majority_count = 0
 
     #make sure to not accumulate gradients
     with torch.no_grad():
@@ -249,11 +263,11 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
                                       dataset_dir=dataset_path,
                                       transform=validation_transform)
 
-    print("\n\n",dict(Counter(validation_data.targets)))
+    #find what the number of instances in each class is for the validation set
+    #i.e. {0: 1234, 1: 78910}
+    class_counts = dict(Counter(validation_data.targets))
 
-    sys.exit("\n\n\n...\n\n\n")
-
-    validation_dataloader = DataLoader(validation_data, batch_size=32, shuffle=True)
+    validation_dataloader = DataLoader(validation_data, batch_size=1, shuffle=True)
 
     #build the model
     model = Model(model_name).construct_model(verbose=False)
@@ -284,13 +298,15 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
 
         #make sure to expose the model first, with just the raw initilizations
         if epoch == 0:
-            loss, accuracy = expose(model, epoch-1, train_dataloader, device, criterion, optimizer)
+            mode = 'train'
+            loss, accuracy = expose(model, epoch-1, train_dataloader, device, criterion, optimizer, class_counts, mode)
 
             #track the training history
             exposure_training_loss_history.append(loss)
             exposure_training_accuracy_history.append(accuracy)
 
-            loss, accuracy = expose(model, epoch-1, validation_dataloader, device, criterion, optimizer)
+            mode = 'validate'
+            loss, accuracy = expose(model, epoch-1, validation_dataloader, device, criterion, optimizer, class_counts, mode)
 
             #track the training history
             exposure_validation_loss_history.append(loss)
@@ -304,7 +320,7 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
         training_accuracy_history.append(accuracy)
 
         #validate
-        val_loss, val_accuracy = validate(model, epoch, validation_dataloader, device, criterion, optimizer)
+        val_loss, val_accuracy = validate(model, epoch, validation_dataloader, device, criterion, optimizer, class_counts)
 
         #track the training history
         validation_loss_history.append(val_loss)
@@ -367,7 +383,7 @@ def assign_arguments():
     parser = argparse.ArgumentParser(description="awn/awnless training script using either vgg16 or resnet")
     parser.add_argument('--model_name', type=str, default='vgg16', required=False)
     parser.add_argument('--train_csv_path', type=str, default='data/2019_train_awns_UNDERsampled.csv', required=False)
-    parser.add_argument('--val_csv_path', type=str, default='data/2019_val_awns_oversampled.csv', required=False)
+    parser.add_argument('--val_csv_path', type=str, default='data/2019_val_awns.csv', required=False)
     parser.add_argument('--epochs', type=int, default=10, required=False)
     parser.add_argument('--learning_rate', type=float, default=0.00001, required=False)
     parser.add_argument('--lr_lambda', type=float, default=0.95, required=False)
