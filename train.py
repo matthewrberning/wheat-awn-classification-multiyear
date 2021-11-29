@@ -35,7 +35,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
     #set model mode
     model.eval()
 
-    if mode == 'val':
+    if mode == 'validate':
         majority_count = 0
 
     #make sure to not accumulate gradients
@@ -46,7 +46,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
 
         for step, data in enumerate(progress_bar):
 
-            if mode == 'val':
+            if mode == 'validate':
                 if majority_count == class_counts[0]:
                     break
 
@@ -72,7 +72,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
             #track the correct predictions (.item()to collect just the value)
             corrects += torch.sum(preds == labels.data).item()
 
-            if mode == 'val' and labels[0].item() == 0:
+            if mode == 'validate' and labels[0].item() == 0:
                 print("adding to majority count!!!!")
                 majority_count += 1
 
@@ -298,12 +298,6 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
 
         #make sure to expose the model first, with just the raw initilizations
         if epoch == 0:
-            mode = 'train'
-            loss, accuracy = expose(model, epoch-1, train_dataloader, device, criterion, optimizer, class_counts, mode)
-
-            #track the training history
-            exposure_training_loss_history.append(loss)
-            exposure_training_accuracy_history.append(accuracy)
 
             mode = 'validate'
             loss, accuracy = expose(model, epoch-1, validation_dataloader, device, criterion, optimizer, class_counts, mode)
@@ -311,6 +305,17 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
             #track the training history
             exposure_validation_loss_history.append(loss)
             exposure_validation_accuracy_history.append(accuracy)
+
+
+
+            mode = 'train'
+            loss, accuracy = expose(model, epoch-1, train_dataloader, device, criterion, optimizer, class_counts, mode)
+
+            #track the training history
+            exposure_training_loss_history.append(loss)
+            exposure_training_accuracy_history.append(accuracy)
+
+
 
         #train
         loss, accuracy = train(model, epoch, train_dataloader, device, criterion, optimizer, scheduler)
