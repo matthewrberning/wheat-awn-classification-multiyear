@@ -21,6 +21,7 @@ import GPUtil
 import pickle
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from collections import Counter
 
 def expose(model, epoch, dataloader, device, criterion, optimizer):
     print(f"EXPOSE      epoch: {epoch}")
