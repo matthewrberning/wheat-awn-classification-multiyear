@@ -401,7 +401,7 @@ if __name__ == '__main__':
 
 
     if yesno("are the training conditions above correct?"):
-        main(model=args.model_name, 
+        main(model_name=args.model_name, 
              train_csv_path=args.train_csv_path, 
              val_csv_path=args.val_csv_path, 
              epochs=args.epochs,
