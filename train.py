@@ -73,7 +73,6 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
             corrects += torch.sum(preds == labels.data).item()
 
             if mode == 'validate' and labels[0].item() == 0:
-                print("adding to majority count!!!!")
                 majority_count += 1
 
 
@@ -183,6 +182,9 @@ def validate(model, epoch, dataloader, device, criterion, optimizer, class_count
 
         for step, data in enumerate(progress_bar):
 
+            if majority_count == class_counts[0]:
+                break
+
             #unpack the data from the progress bar
             images, labels = data[0], data[1]
 
@@ -204,6 +206,9 @@ def validate(model, epoch, dataloader, device, criterion, optimizer, class_count
 
             #track the correct predictions
             corrects += torch.sum(preds == labels.data).item()
+
+            if labels[0].item() == 0:
+                majority_count += 1
 
 
     #calculate the total loss across the iterations of the loader
