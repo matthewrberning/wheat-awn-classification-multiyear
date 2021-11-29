@@ -78,13 +78,13 @@ class Model():
                 param.requires_grad = False
             
             #get old last layer's in-features
-            input_features = model.fc.in_features
+            input_features = self.model.fc.in_features
             
             #make a new last layer
             terminal_layer = nn.Linear(input_features, 2)
 
             #replace the original final linear layer with ours
-            model.fc = terminal_layer
+            self.model.fc = terminal_layer
             
             #this should not be needed?? Not sure what is going on ¯\_(ツ)_/¯
             for param in self.model.fc.parameters():
