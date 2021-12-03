@@ -25,10 +25,6 @@ from torchvision import transforms
 
 
 
-
-
-
-
 def add_subplot_border(ax, width=1, color=None ):
     '''
     helper function to add a border to the plot
