@@ -33,7 +33,12 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 def get_montages(model_name):
-    search_dir = "/pless_nfs/home/matthewrberning/wheat-awn-classification-multiyear/data/montages"
+	'''
+	helper function to collect a list of montages made using a specific 
+	model_name in the montage dir
+	'''
+
+    search_dir = "../data/montages"
     os.chdir(search_dir)
     mont_files = filter(os.path.isfile, os.listdir(search_dir))
     mont_files = [os.path.join(search_dir, f) for f in mont_files]# add path to each file
@@ -61,12 +66,9 @@ def get_confusion_matrix_for_dataset(data_csv, batch_size, saved_model, title, d
     predictions, and plotting a confusion matrix for a specific dataset
     '''
     
-    #collect test dataset and create loader iterable-object
-    dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
-    
     transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
 
-    data = WheatAwnDataset(csv_filepath=data_csv, dataset_dir=dataset_path, transform=transform)
+    data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=False)
     
     #track the correct predictions
@@ -341,15 +343,11 @@ def plot_incorrects_grid(imgs, predicted_labels, groundtruth_labels, plot_id_GT,
 
 def collect_fifty_random_preds(data_csv, saved_model, find_incorrects=True, collect_class=None):
 
-    #collect test dataset and create loader iterable-object
-    dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
 
     transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
 
-    data = WheatAwnDataset(csv_filepath=data_csv, dataset_dir=dataset_path, transform=transform)
+    data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
     dataloader = DataLoader(data, batch_size=10, shuffle=True)
-
-
 
     #set model mode
     saved_model.eval()
