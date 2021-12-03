@@ -8,13 +8,11 @@ from torchvision.io import read_image
 class WheatAwnDataset(Dataset):
 	""" dataset class for awn/awnless wheat data """
 
-	def __init__(self, csv_filepath, dataset_dir, transform=None, verbose=True):
+	def __init__(self, csv_filepath, transform=None, verbose=True):
 		"""	
 		Keyword Argumens: 
 			csv_filepath : str
 				the path to the .csv dataset definition (key_file or similar)
-			dataset_dir : str
-				the path to the directory where the images are located
 			transform : callable, optional (default is None)
 				transform.compose() object with normalizations/data augmentation
 			verbose : bool, optional (default is True)
@@ -25,9 +23,6 @@ class WheatAwnDataset(Dataset):
 		self.dataset_df = pd.read_csv(csv_filepath)
 
 		if verbose: print(f"data file \"{csv_filepath.split('/')[-1]}\" contains {len(self.dataset_df)} rows")
-
-		#set the path for the root folder to the images of the dataset
-		self.dataset_dir = dataset_dir
 
 		#transforms object
 		self.transform = transform

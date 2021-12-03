@@ -239,10 +239,6 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("(using device: ", device,")\n\n")
 
-
-    #construct the datasets
-    dataset_path = '/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/'
-
     #training data
     print("building training set...")
     train_data_csv = os.path.join(dir_path, train_csv_path)
@@ -253,7 +249,6 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
                                           transforms.ToTensor()])
     
     training_data = WheatAwnDataset(csv_filepath=train_data_csv,
-                                    dataset_dir=dataset_path,
                                     transform=train_transform)
 
     train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
@@ -265,7 +260,6 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
                                                transforms.ToTensor()])
     
     validation_data = WheatAwnDataset(csv_filepath=validation_data_csv,
-                                      dataset_dir=dataset_path,
                                       transform=validation_transform)
 
     #find what the number of instances in each class is for the validation set
