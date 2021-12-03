@@ -6,12 +6,17 @@ import time
 import argparse
 from os.path import dirname, abspath
 
-sys.path.insert(0, os.path.abspath(os.path.dirname('../model/')))
-sys.path.insert(0, os.path.abspath(os.path.dirname('../data/')))
+super_dir = dirname(abspath(__file__))
+sys.path.insert(0, super_dir)
+sys.path.insert(0, os.path.join(super_dir, '../model/'))
+sys.path.insert(0, os.path.join(super_dir, '../data/'))
+# sys.path.insert(0, os.path.abspath(os.path.dirname('../model/')))
+# sys.path.insert(0, os.path.abspath(os.path.dirname('../data/')))
+
 
 from model import Model
 from dataset import WheatAwnDataset
-from input import yesno
+from input_validation import yesno
 from tensor_operations import tensor_to_image
 
 import PIL

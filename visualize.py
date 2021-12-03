@@ -31,33 +31,40 @@ def collect_arguments():
 if __name__ == '__main__':
 
     #find the correct GPU -and use it!
-    deviceIDs = GPUtil.getAvailable(order = 'first', 
-                                    limit = 1, 
-                                    maxLoad = 0.3, 
-                                    maxMemory = 0.3, 
-                                    includeNan=False, 
-                                    excludeID=[], 
-                                    excludeUUID=[])
+    # deviceIDs = GPUtil.getAvailable(order = 'first', 
+    #                                 limit = 1, 
+    #                                 maxLoad = 0.3, 
+    #                                 maxMemory = 0.3, 
+    #                                 includeNan=False, 
+    #                                 excludeID=[], 
+    #                                 excludeUUID=[])
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
+    # os.environ["CUDA_VISIBLE_DEVICES"] = str(deviceIDs[0])
 
-    print("\n\nGPU Chosen: ", str(deviceIDs[0]),"\n\n")
+    # print("\n\nGPU Chosen: ", str(deviceIDs[0]),"\n\n")
 
     args = collect_arguments()
 
-    if args.vis == 'montage':
-        build_conditional_montages(args.data_csv,
-                                   args.batch_size,
-                                   args.fig_title,
-                                   args.model_pth,
-                                   args.pkl_file_path,
-                                   args.model_name,
-                                   args.end_after,
-                                   args.find_incorrects,
-                                   args.save_dir,
-                                   args.verbose,
-                                   args.collect_class)
+    for arg in vars(args):
+        print(arg, getattr(args, arg))
 
+    if yesno("are the training conditions above correct?"):
+        if args.vis == 'montage':
+            build_conditional_montages(args.data_csv,
+                                       args.batch_size,
+                                       args.fig_title,
+                                       args.model_pth,
+                                       args.pkl_file_path,
+                                       args.model_name,
+                                       args.end_after,
+                                       args.find_incorrects,
+                                       args.save_dir,
+                                       args.verbose,
+                                       args.collect_class)
+
+        else:
+            sys.exit("\n\n\n...that option doesn't exist yet\n\n\n")
     else:
-        sys.exit("\n\n\n...that option doesn't exist yet\n\n\n")
+        sys.exit("\n\n\n...\n\n\n")
+
 
