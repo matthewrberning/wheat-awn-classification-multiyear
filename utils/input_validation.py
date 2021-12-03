@@ -2,6 +2,8 @@
 import os
 import sys
 
+import pickle
+
 def yesno(question):
     """
     Simple Yes/No Function.
@@ -22,3 +24,9 @@ def yesno(question):
     if ans == 'y':
         return True
     return False
+
+def open_dict_from_pkl(pkl_path):
+    'helper fn to one-line open dicts'
+    with open(pkl_path, 'rb') as handle:
+        dict_ = pickle.load(handle)
+    return dict_
