@@ -46,6 +46,9 @@ class WheatAwnDataset(Dataset):
 		#we're also interested in the plot_id so collect/return that too
 		plot_id = self.dataset_df.iloc[idx, 2]
 
+		#and we are going to include the date of capture for voting
+		date = self.dataset_df.iloc[idx, 3]
+
 		#read the image with torch (returns a uint8 tensor)
 		#no transforms.ToTensor() needed
 		#https://github.com/pytorch/vision/issues/2788
@@ -58,7 +61,7 @@ class WheatAwnDataset(Dataset):
 		if self.transform:
 			image = self.transform(image)
 
-		return image, label, plot_id
+		return image, label, plot_id, date
 
 
 
