@@ -32,6 +32,203 @@ import torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+
+def poll_plots(data_csv, plot_id_dict, date_dict, saved_model, device, confusion_matrix_title, voting_method, verbose=False):
+
+    #create validation transforms
+    transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
+
+    #build torch dataset/dataloader
+    data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
+    dataloader = DataLoader(data, batch_size=64, shuffle=True)
+
+    #>>>>COLLECT THE VOTES
+
+    #create dictionaries to hold all predictions for a plot
+    vote_dict = {}
+    #and all ground truth lables
+    GT_dict = {}
+
+    progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc=f"Progress: ")
+
+    for step, data in enumerate(progress_bar):
+
+        images, labels, plot_ids, dates = data[0], data[1], data[2], data[3]
+
+        #send the tensors to the device (GPU)
+        images = images.to(device)
+        labels = labels.to(device)
+
+        #images = images.float() #uncomment if using read_image() from torch
+        outputs = saved_model(images)
+
+        #find the predicted classes indicies
+        _, preds = torch.max(outputs, 1)
+
+        for index, plot_id in enumerate(plot_ids):
+
+            #make the numeric plot_id a string 
+            #so it can be a key in a dictionary
+            plot_id = str(plot_id.item())
+
+            #make the date of the photo's collection a string too
+            date = str(dates[index].item())
+
+
+
+            #find all the current keys at each step
+            current_keys = list(vote_dict.keys())
+
+
+            if voting_method == 'date':
+
+                plot_id_date_string = plot_id + "_" + date
+
+
+                #if the plot and date combination-string for the image is already in 
+                #the dictionary then just add the prediction
+                if plot_id_date_string in current_keys:
+                    vote_dict[plot_id_date_string].append(preds[index].item())
+                    GT_dict[plot_id_date_string].append(labels[index].item())
+
+                #otherwise make a new key for the combo in the dictionary
+                #and add a list as the value, with the elem being the prediction
+                else:
+                    vote_dict[plot_id_date_string]=[preds[index].item()]
+                    GT_dict[plot_id_date_string]=[labels[index].item()]  
+
+            elif voting_method == 'plot':
+
+                #if the plot for the image is already in the dictionary
+                #then just add the prediction
+                if plot_id in current_keys:
+                    vote_dict[plot_id].append(preds[index].item())
+                    GT_dict[plot_id].append(labels[index].item())
+
+                #otherwise make a new key in the dictionary for the plot
+                #and add a list as the value, with the elem being the prediction
+                else:
+                    vote_dict[plot_id]=[preds[index].item()]
+                    GT_dict[plot_id]=[labels[index].item()]
+
+    #>>>>>COUNT THE VOTES  
+
+    #collect a list of the numeric representations of the plot_id's            
+    # numeric_plot_ids_list = list(plot_votes.keys())
+    #collect a list of all of the keys for all of the votes in the dictionary
+    #these can be "plot_id" + "_" + "date" or just "plot_id" depending on the 
+    #vote type
+    voting_keys = list(vote_dict.keys())
+
+    #count the votes/predictions and compare
+    #with the ground truth for conf. matrix
+    awns = 0
+    awnless = 0
+    awn_corrects = 0
+    awnless_corrects = 0
+    total_corrects = 0
+
+    #make lists of gt's and preds as well for the confoosion matrix
+    predictions = []
+    ground_truths = []
+
+    for key in voting_keys:
+
+        #find the class from the first label in the ground 
+        #truth dict for the vote-block in question
+        gt_class = GT_dict[key][0]
+
+        #add the GT to the confusion matrix list
+        ground_truths.append(gt_class)
+
+        if gt_class == 0:
+            awns+=1
+        else:
+            awnless+=1
+
+        if voting_method == 'plot':
+            if verbose: print("plot_id number: ", key)
+            if verbose: print("plot Ground Truth class: ", gt_class)
+
+        if voting_method == 'date':
+            if verbose: print("plot_id number, date number: ", key.split("_"))
+            if verbose: print("Ground Truth class: ", gt_class)
+
+        #calculate the model's vote for the plot by summing the lables
+        #the awnless label is 1 so if more than 50% of the plot is 1's then
+        #the model voted for it to be awnless, else it's awned - 0's
+        #(but there's also the posibility of a tie)
+        vote = sum(vote_dict[key])/len(vote_dict[key])
+
+        if vote  >= 0.5:
+
+            #add to confusion matrix
+            predictions.append(1)
+
+            if verbose: print("model predicted class: 1 (vote)")
+
+            if gt_class == 1:
+                awnless_corrects+=1
+
+        elif vote < 0.5:
+
+            #add to confusion matrix
+            predictions.append(0)
+
+            if verbose: print("model predicted class: 0 (vote)")
+
+            if gt_class == 0:
+                awn_corrects+=1
+        else:
+            print("TIE!???!!")
+            if voting_method == 'plot':
+                print("--> plot_id number: ", key)
+                print("--> plot Ground Truth class: ", gt_class)
+            if voting_method == 'date':
+                print("--> plot_id + _ + date numbers: ", key)
+                print("--> Ground Truth class: ", gt_class)
+
+        if voting_method == 'plot':
+            #collect the string representation of the plot id from the loaded json
+            plot_id_string = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key))]
+
+            if verbose: print("plot_id string: ", plot_id_string, "\n")
+
+        if voting_method == 'date':
+            #collect the string representation of the plot_id and the date from the loaded json
+            plot_id_string = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key.split("_")[0]))]
+            date_string = list(date_dict.keys())[list(date_dict.values()).index(int(key.split("_")[1]))]
+
+            if verbose: print("plot_id string: ", plot_id_string, "\n")
+            if verbose: print("plot_id string: ", date_string, "\n")
+
+    #report
+    print("total awned plots: ",awns,"\ntotal awnless plots: ", awnless)
+    print("awned pct. correct: ", round((awn_corrects/awns), 2)*100, "%")
+    print("awnless pct. correct: ", round((awnless_corrects/awnless), 2)*100, "%")
+    print("total pct. correct: ", round(((awnless_corrects+awn_corrects)/(awnless+awns)), 2)*100, "%")
+
+    # Calculate the confusion matrix
+    conf_matrix = confusion_matrix(y_true=ground_truths, y_pred=predictions)
+
+    # Print the confusion matrix using Matplotlib
+    fig, ax = plt.subplots(figsize=(7.5, 7.5))
+    ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
+    for i in range(conf_matrix.shape[0]):
+        for j in range(conf_matrix.shape[1]):
+            ax.text(x=j, y=i,s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
+
+    plt.xlabel('Predictions', fontsize=18)
+    plt.ylabel('Actuals', fontsize=18)
+    plt.title(confusion_matrix_title, fontsize=18)
+    plt.show()
+
+
+    return vote_dict, GT_dict
+    
+
+
+
 def get_montages(model_name):
     '''
     helper function to collect a list of montages made using a specific 
@@ -466,146 +663,7 @@ def collect_fifty_random_preds(data_csv, saved_model, find_incorrects=True, coll
     return imgs, predicted_labels, groundtruth_labels, plot_id_GT, pred_confs
 
 
-def poll_plots(data_csv, plot_id_dict, saved_model, device, confusion_matrix_title, verbose=False):
-        
-    #create validation transforms
-    transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
-    
-    #build torch dataset/dataloader
-    data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
-    dataloader = DataLoader(data, batch_size=64, shuffle=True)
-    
-    #create dictionaries to hold all predictions for a plot
-    plot_votes = {}
-    #and all ground truth lables
-    plot_GT = {}
-    
-    progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc=f"Progress: ")
 
-    for step, data in enumerate(progress_bar):
-
-        images, labels, plot_ids = data[0], data[1], data[2]
-        
-        #send the tensors to the device (GPU)
-        images = images.to(device)
-        labels = labels.to(device)
-
-        #images = images.float() #uncomment if using read_image() from torch
-        outputs = saved_model(images)
-
-        #find the predicted classes indicies
-        _, preds = torch.max(outputs, 1)
-
-        for index, plot_id in enumerate(plot_ids):
-            
-            #make the numeric plot_id a string 
-            #so it can be a key in a dictionary
-            plot_id = str(plot_id.item())
-
-            #find all the current keys at each step
-            current_plots = list(plot_votes.keys())
-            
-            #if the plot for the image is already in the dictionary
-            #then just add the prediction
-            if plot_id in current_plots:
-                plot_votes[plot_id].append(preds[index].item())
-                plot_GT[plot_id].append(labels[index].item())
-            
-            #otherwise make a new key in the dictionary
-            #and add a list as the value, with the elem being the prediction
-            else:
-                plot_votes[plot_id]=[preds[index].item()]
-                plot_GT[plot_id]=[labels[index].item()]
-                
-    #collect a list of the numeric representations of the plot_id's            
-    numeric_plot_ids_list = list(plot_votes.keys())
-    
-    #count the plots and predictions and compare
-    #with the ground truth
-    awns = 0
-    awnless = 0
-    awn_corrects = 0
-    awnless_corrects = 0
-    total_corrects = 0
-    
-    #make lists of gt's and preds as well for the confoosion matrix
-    plot_predictions = []
-    plot_ground_truths = []
-
-    for plot in numeric_plot_ids_list:
-        
-        #find the plot class from the first label in the plot ground 
-        #truth dict for the plot in question
-        plot_class = plot_GT[plot][0]
-        
-        #add the GT to the confusion matrix list
-        plot_ground_truths.append(plot_class)
-
-        if plot_class == 0:
-            awns+=1
-        else:
-            awnless+=1
-
-        if verbose: print("plot_id number: ", plot)
-        if verbose: print("plot Ground Truth class: ", plot_class)
-        
-        #calculate the model's vote for the plot by summing the lables
-        #the awnless label is 1 so if more than 50% of the plot is 1's then
-        #the model voted for it to be awnless, else it's awned - 0's
-        #(but there's also the posibility of a tie)
-        vote = sum(plot_votes[plot])/len(plot_votes[plot])
-        
-        if vote  >= 0.5:
-            
-            #add to confusion matrix
-            plot_predictions.append(1)
-            
-            if verbose: print("model predicted class: 1 (vote)")
-            
-            if plot_class == 1:
-                awnless_corrects+=1
-
-        elif vote < 0.5:
-            
-            #add to confusion matrix
-            plot_predictions.append(0)
-            
-            if verbose: print("model predicted class: 0 (vote)")
-
-            if plot_class == 0:
-                awn_corrects+=1
-        else:
-            print("plot_id number: ", plot)
-            print("plot Ground Truth class: ", plot_class)
-            print("TIE!?")
-        
-        #collect the string representation of the plot id from the loaded json
-        plot_id_string = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(plot))]
-
-        if verbose: print("plot_id string: ", plot_id_string, "\n")
-        
-    #report
-    print("total awned plots: ",awns,"\ntotal awnless plots: ", awnless)
-    print("awned pct. correct: ", round((awn_corrects/awns), 2)*100, "%")
-    print("awnless pct. correct: ", round((awnless_corrects/awnless), 2)*100, "%")
-    print("total pct. correct: ", round(((awnless_corrects+awn_corrects)/(awnless+awns)), 2)*100, "%")
-    
-    # Calculate the confusion matrix
-    conf_matrix = confusion_matrix(y_true=plot_ground_truths, y_pred=plot_predictions)
-    
-    # Print the confusion matrix using Matplotlib
-    fig, ax = plt.subplots(figsize=(7.5, 7.5))
-    ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
-    for i in range(conf_matrix.shape[0]):
-        for j in range(conf_matrix.shape[1]):
-            ax.text(x=j, y=i,s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
-
-    plt.xlabel('Predictions', fontsize=18)
-    plt.ylabel('Actuals', fontsize=18)
-    plt.title(confusion_matrix_title, fontsize=18)
-    plt.show()
-    
-    return plot_votes, plot_GT
 
 
 def build_conditional_montages(data_csv,
