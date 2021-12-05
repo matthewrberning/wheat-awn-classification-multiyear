@@ -101,6 +101,10 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
                 
     if mode == 'validate':
         
+        #report
+        print(f"      ..found {majority_count} majority class ({majority_class_label}) examples (online-downsampling)")
+        print(f"      ..found {minority_count} minority class ({minority_class_label}) examples")
+        
         #calculate the total loss across the (not skipped) iterations of the loader
         epoch_loss = epoch_loss/epoch_iterations    
 
@@ -204,7 +208,11 @@ def validate(model, epoch, dataloader, device, criterion, optimizer, class_count
 
             #count a completed iteration
             epoch_iterations += 1
-    
+
+    #report
+    print(f"      ..found {majority_count} majority class ({majority_class_label}) examples (online-downsampling)")
+    print(f"      ..found {minority_count} minority class ({minority_class_label}) examples")
+
     #calculate the total loss across the (not skipped) iterations of the loader
     epoch_loss = (epoch_loss/epoch_iterations)    
 
