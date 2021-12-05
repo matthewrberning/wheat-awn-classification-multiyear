@@ -33,10 +33,10 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 def get_montages(model_name):
-	'''
-	helper function to collect a list of montages made using a specific 
-	model_name in the montage dir
-	'''
+    '''
+    helper function to collect a list of montages made using a specific 
+    model_name in the montage dir
+    '''
 
     search_dir = "../data/montages"
     os.chdir(search_dir)
