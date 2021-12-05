@@ -10,7 +10,7 @@ import argparse
 
 from model.model import Model
 from data.dataset import WheatAwnDataset
-from utils.input import yesno
+from utils.input_validation import yesno
 
 
 import torch
