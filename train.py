@@ -310,7 +310,7 @@ def main(model_name, train_csv_path, val_csv_path, epochs, learning_rate, lr_lam
     
     training_data = WheatAwnDataset(csv_filepath=train_data_csv, transform=train_transform)
 
-    print("\ntraining set class_counts: ",dict(Counter(validation_data.targets)),"\n")
+    print("\ntraining set class_counts: ",dict(Counter(training_data.targets)),"\n")
 
     train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 
