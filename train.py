@@ -184,7 +184,7 @@ def validate(model, epoch, dataloader, device, criterion, optimizer, class_count
 
         for step, data in enumerate(progress_bar):
 
-            if majority_count == class_counts[0]:
+            if majority_count == class_counts[1]:
                 break
 
             #unpack the data from the progress bar
