@@ -47,7 +47,8 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
         for step, data in enumerate(progress_bar):
 
             if mode == 'validate':
-                if majority_count == class_counts[0]:
+                #check if the majority count has become equal to the minority class
+                if majority_count == class_counts[1]:
                     break
 
             #unpack the data from the progress bar
@@ -72,6 +73,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
             #track the correct predictions (.item()to collect just the value)
             corrects += torch.sum(preds == labels.data).item()
 
+            #if we're using the validation set 
             if mode == 'validate' and labels[0].item() == 0:
                 majority_count += 1
 
