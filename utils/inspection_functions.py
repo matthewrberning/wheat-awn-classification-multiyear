@@ -541,7 +541,7 @@ def plot_incorrects_grid(imgs, predicted_labels, groundtruth_labels, plot_id_GT,
     plt.show()
 
 
-def collect_fifty_random_preds(data_csv, saved_model, find_incorrects=True, collect_class=None):
+def collect_fifty_random_preds(data_csv, saved_model, device, find_incorrects=True, collect_class=None):
 
 
     transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
