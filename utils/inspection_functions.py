@@ -16,18 +16,21 @@ sys.path.insert(0, os.path.join(super_dir, '../data/'))
 
 from model import Model
 from dataset import WheatAwnDataset
-from input_validation import yesno
+from input_validation import yesno, open_dict_from_pkl
 from tensor_operations import tensor_to_image
 
 import PIL
-import pickle
 import GPUtil
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
+from sklearn.metrics import confusion_matrix
+from datetime import datetime
 from tqdm import tqdm
 
 import torch
+import torch.nn as nn
 import torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
