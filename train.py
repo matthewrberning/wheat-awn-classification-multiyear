@@ -100,7 +100,7 @@ def expose(model, epoch, dataloader, device, criterion, optimizer, class_counts,
                 epoch_iterations += 1
                 
     if mode == 'validate':
-        
+
         #report
         print(f"      ..found {majority_count} majority class ({majority_class_label}) examples (online-downsampling)")
         print(f"      ..found {minority_count} minority class ({minority_class_label}) examples")
@@ -470,8 +470,8 @@ if __name__ == '__main__':
     #find the correct GPU -and use it!
     deviceIDs = GPUtil.getAvailable(order = 'first', 
                                     limit = 1, 
-                                    maxLoad = 0.3, 
-                                    maxMemory = 0.3, 
+                                    maxLoad = 0.1, 
+                                    maxMemory = 0.1, 
                                     includeNan=False, 
                                     excludeID=[], 
                                     excludeUUID=[])
