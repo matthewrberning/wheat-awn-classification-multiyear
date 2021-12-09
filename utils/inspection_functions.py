@@ -36,14 +36,57 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 
-def poll_plots(data_csv, plot_id_dict, date_dict, saved_model, device, confusion_matrix_title, voting_method, verbose=False):
+def poll_plots(data_csv, 
+               plot_id_dict, 
+               date_dict, 
+               saved_model, 
+               device, 
+               confusion_matrix_title, 
+               voting_method,
+               batch_size=64, 
+               verbose=False):
+    """
+    function to determine a trained model's prediction through majority-rule voting,
+    either across all examples for a specific plot_id or using only those examples
+    that were collected during a single data-collection episode (a single flight)
+
+    Keyword Argumens: 
+        data_csv : string, required 
+            the .CSV file containing the dataset description (labels, images, plot_ids, date)
+            that can be interpreted by the dataloader/model
+
+        plot_id_dict : string, required 
+            the path to the pickel file that determines the relationship between plot_id 
+            and numeric value that can be understood by the torch dataloader
+
+        date_dict : string, required 
+            the path to the pickel file that determines the relationship between the date 
+            of capture and the numeric value that can be understood by the torch dataloader
+
+        saved_model : string, required 
+            the path to the model pth file to be used to make the predictions
+
+        device : string, required 
+            the device to use ('cuda'/'cuda:0' or 'cpu')
+
+
+        confusion_matrix_title : string, required 
+            the title of the confusion matrix to be output
+
+        voting_method : string, required 
+            the method of counting the votes, either 'plot' or 'date'
+
+        verbose : bool, optional (default is False)
+            control amount of output regarding saving, etc.
+            
+    """
 
     #create validation transforms
     transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
 
     #build torch dataset/dataloader
     data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
-    dataloader = DataLoader(data, batch_size=64, shuffle=True)
+    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
     #>>>>COLLECT THE VOTES
 
@@ -331,7 +374,8 @@ def get_confusion_matrix_for_dataset(data_csv, batch_size, saved_model, title, d
     plt.show()
 
 def plot_training_history(history_dict_pkl_path):
-    '''helper function to take a history dictionary pickel file and plot it
+    '''
+    helper function to take a history dictionary pickel file and plot it
     
     history dict structure:
     
