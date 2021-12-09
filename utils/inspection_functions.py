@@ -50,7 +50,7 @@ def poll_plots(data_csv,
     either across all examples for a specific plot_id or using only those examples
     that were collected during a single data-collection episode (a single flight)
 
-    Keyword Argumens: 
+    Keyword Arguments: 
         data_csv : string, required 
             the .CSV file containing the dataset description (labels, images, plot_ids, date)
             that can be interpreted by the dataloader/model
@@ -178,6 +178,11 @@ def poll_plots(data_csv,
     predictions = []
     ground_truths = []
 
+    #collect mistakes 
+    mistakes_dict = {}
+    #{'plot_id':{'gt':0, 'pred':1, 'vote_pct':0.734}}
+    #{'plot_id':{'date':20,gt':0, 'pred':1, 'vote_pct':0.734}}  
+
     for key in voting_keys:
 
         #find the class from the first label in the ground 
@@ -211,20 +216,44 @@ def poll_plots(data_csv,
             #add to confusion matrix
             predictions.append(1)
 
-            if verbose: print("model predicted class: 1 (vote)")
+            if verbose: print("model predicted (voted for) class: 1")
 
             if gt_class == 1:
+                #correct! 
                 awnless_corrects+=1
+
+            else:
+                #it's a mistake! 
+                if voting_method == 'plot':
+                    #the key is the plot_id
+                    mistakes_dict[key] ={'gt':gt_class, 'pred':1, 'vote':vote}
+                if voting_method == 'date':
+                    #the key is the plot_id and date combo-string
+                    plot = key.split("_")[0]
+                    date = key.split("_")[1]
+                    mistakes_dict[plot] ={'date':date, 'gt':gt_class, 'pred':1, 'vote':vote}
 
         elif vote < 0.5:
 
             #add to confusion matrix
             predictions.append(0)
 
-            if verbose: print("model predicted class: 0 (vote)")
+            if verbose: print("model predicted (voted for) class: 0")
 
             if gt_class == 0:
+                #correct!
                 awn_corrects+=1
+
+            else:
+                #it's a mistake! 
+                if voting_method == 'plot':
+                    #the key is the plot_id
+                    mistakes_dict[key] ={'gt':gt_class, 'pred':0, 'vote':vote}
+                if voting_method == 'date':
+                    #the key is the plot_id and date combo-string
+                    plot = key.split("_")[0]
+                    date = key.split("_")[1]
+                    mistakes_dict[plot] ={'date':date, 'gt':gt_class, 'pred':0, 'vote':vote}
         else:
             print("TIE!???!!")
             if voting_method == 'plot':
@@ -270,7 +299,7 @@ def poll_plots(data_csv,
     plt.show()
 
 
-    return vote_dict, GT_dict
+    return vote_dict, GT_dict, mistakes_dict
     
 
 
@@ -278,7 +307,13 @@ def poll_plots(data_csv,
 def get_montages(model_name):
     '''
     helper function to collect a list of montages made using a specific 
-    model_name in the montage dir
+    model_name in the montage dir (hard coded as "../data/montages")
+
+    Keyword Arguments: 
+        model_name: string, required 
+            the unique model name/timestamp to find in the collection of
+            montage files
+
     '''
 
     search_dir = "../data/montages"
