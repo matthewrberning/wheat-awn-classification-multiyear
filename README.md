@@ -1,3 +1,5 @@
-# wheat-awn-classification-multiyear
-Conv-net for discrimination between awned and awnless varieties of wheat (Triticum) 
-data location: "/pless_nfs/home/matthewrberning/multi-year-cult-class/data/preprocessed/"
+# A Binary Classification Model to Predict Wheat Phenotype (Awned vs. Awnless)
+<hr>
+There is a field in Kansas, with some wheat (Triticum sp.). A drone flew over the field and took pictures.
+Those pictures are our dataset. One of the primary characteristics we care about is the presence of awns, a hair-like structure on the mature (or maturing) head (top) of the wheat plant. The data looks mostly like this:
+![wheat_data_montage.png](wheat_data_montage.png)
