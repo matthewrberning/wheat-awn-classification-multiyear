@@ -942,7 +942,7 @@ def iterate_plotting(model_name,
                                      date_dict=open_dict_from_pkl(date_dict_path), 
                                      saved_model=saved_model, 
                                      device=device, 
-                                     confusion_matrix_title=confusion_matrix_title, 
+                                     confusion_matrix_title=' ', 
                                      voting_method=voting_method, 
                                      verbose=verbose)
 
