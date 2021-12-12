@@ -925,6 +925,114 @@ def collect_fifty_random_preds(data_csv, saved_model, device, find_incorrects=Tr
 
 
 
+def iterate_plotting(collected_mistakes_dict, 
+                     model_name, 
+                     model_pth, 
+                     plot_id_dict, 
+                     date_dict,
+                     data_csv, 
+                     voting_method,
+                     save_dir,
+                     batch_size=128,
+                     verbose=False):
+
+    #load up the model
+    print(f"\nloading model from: {model_pth}")
+    saved_model = Model(model_name).construct_model(verbose=False)
+    saved_model.load_state_dict(torch.load(model_pth))
+    
+    #send the model to the GPU
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("\nsending model to device: ", device)
+    saved_model = saved_model.to(device)
+
+
+    #vote and get predictions and mistakes
+    _, _, mistakes_dict = poll_plots(data_csv=data_csv, 
+                                     plot_id_dict=plot_id_dict, 
+                                     date_dict=date_dict, 
+                                     saved_model=saved_model, 
+                                     device=device, 
+                                     confusion_matrix_title=confusion_matrix_title, 
+                                     voting_method=voting_method, 
+                                     verbose=verbose)
+
+
+
+    #collect just the mistakes to visualize
+    collected_mistakes_dict = collect_poll_mistakes(mistakes_dict=mistakes_dict, 
+                                                    voting_method=voting_method,
+                                                    data_csv = data_csv,
+                                                    plot_id_dict = plot_id_dict,
+                                                    date_dict=date_dict,
+                                                    saved_model=saved_model,
+                                                    device=device,
+                                                    batch_size=batch_size,
+                                                    collect_fifty=False)
+
+
+    #get just the .pth name
+    model_pth_name = model_pth.split('/')[-1]
+
+    #get the keys (the plot or the plot/date combo string)
+    keys = collected_mistakes_dict.keys()
+    
+    for key in keys:
+        
+        #determine how many 50 image groups there are and round to nearest int
+        its = round(len(collected_mistakes_dict[key]['predicted_labels'])/50)
+        
+        #vars to move the groups along
+        start = 0
+        end = 49
+        
+        if voting_method == 'plot':
+            plot_str = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key))]
+            title_str = f"Incorrect Predictions for Plot: {plot_str} [VOTE]"
+            
+        if voting_method == 'date':
+            plot_str = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key.split('_')[0]))]
+            date_str = list(date_dict.keys())[list(date_dict.values()).index(int(key.split('_')[-1]))]
+            
+            title_str = f"Incorrect Predictions for Plot|Date: {plot_str}|{date_str} [VOTE]"
+        
+        for it in range(its):
+
+            #create the save prefix with the voting method and model name
+            save_prefix = f"{model_pth_name.split('.')[0]}_vote_mistakes_vote-by_{voting_method}"
+
+            save_plot_incorrects_grid(imgs=collected_mistakes_dict[key]['imgs'][start:end], 
+                                      predicted_labels=collected_mistakes_dict[key]['predicted_labels'][start:end], 
+                                      groundtruth_labels=collected_mistakes_dict[key]['groundtruth_labels'][start:end], 
+                                      plot_id_GT=collected_mistakes_dict[key]['plot_id_GT'][start:end], 
+                                      fig_title=title_str, 
+                                      model_pth_name=model_pth_name, 
+                                      plot_id_dict=plot_id_dict, 
+                                      pred_confs=collected_mistakes_dict[key]['pred_confs'][start:end],
+                                      save_prefix=save_prefix,
+                                      count_saves=it,
+                                      save_dir=save_dir)
+
+            #move to next group
+            start+=50
+            end+=50
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def build_conditional_montages(data_csv,
                               batch_size, 
