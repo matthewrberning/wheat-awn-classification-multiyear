@@ -34,7 +34,7 @@ def collect_arguments():
 
 if __name__ == '__main__':
 
-    find the correct GPU -and use it!
+    #find the correct GPU -and use it!
     deviceIDs = GPUtil.getAvailable(order = 'first', 
                                     limit = 1, 
                                     maxLoad = 0.1, 
