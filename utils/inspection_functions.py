@@ -56,11 +56,11 @@ def poll_plots(data_csv,
             that can be interpreted by the dataloader/model
 
         plot_id_dict : string, required 
-            the path to the pickel file that determines the relationship between plot_id 
+            the pickel file that determines the relationship between plot_id 
             and numeric value that can be understood by the torch dataloader
 
         date_dict : string, required 
-            the path to the pickel file that determines the relationship between the date 
+            the pickel file that determines the relationship between the date 
             of capture and the numeric value that can be understood by the torch dataloader
 
         saved_model : string, required 
@@ -224,14 +224,8 @@ def poll_plots(data_csv,
 
             else:
                 #it's a mistake! 
-                if voting_method == 'plot':
-                    #the key is the plot_id
-                    mistakes_dict[key] ={'gt':gt_class, 'pred':1, 'vote':vote}
-                if voting_method == 'date':
-                    #the key is the plot_id and date combo-string
-                    plot = key.split("_")[0]
-                    date = key.split("_")[1]
-                    mistakes_dict[plot] ={'date':date, 'gt':gt_class, 'pred':1, 'vote':vote}
+                mistakes_dict[key] ={'gt':gt_class, 'pred':1, 'vote':vote}
+
 
         elif vote < 0.5:
 
@@ -246,14 +240,8 @@ def poll_plots(data_csv,
 
             else:
                 #it's a mistake! 
-                if voting_method == 'plot':
-                    #the key is the plot_id
-                    mistakes_dict[key] ={'gt':gt_class, 'pred':0, 'vote':vote}
-                if voting_method == 'date':
-                    #the key is the plot_id and date combo-string
-                    plot = key.split("_")[0]
-                    date = key.split("_")[1]
-                    mistakes_dict[plot] ={'date':date, 'gt':gt_class, 'pred':0, 'vote':vote}
+                mistakes_dict[key] ={'gt':gt_class, 'pred':0, 'vote':vote}
+
         else:
             print("TIE!???!!")
             if voting_method == 'plot':
@@ -302,6 +290,196 @@ def poll_plots(data_csv,
     return vote_dict, GT_dict, mistakes_dict
     
 
+
+def collect_poll_mistakes(mistakes_dict,
+                          voting_method,
+                          data_csv,
+                          plot_id_dict,
+                          date_dict,
+                          saved_model,
+                          device,
+                          batch_size=128,
+                          collect_fifty=False):
+
+    """
+    this function takes in the mistakes dictionary (mistakes_dict) that is output
+    by the poll_plots() function. It then reconstructs a dataloader and iterates
+    through it to find the images that contributed to the plot being voted into
+    the wrong class, also collected is the ground truth label, the plot id and
+    the confidence in the prediction, then everything wrong is packaged up into
+    another dictionary that may be fed into the montage plotting function, there
+    is also a flag to collect only fifty misses (just enough for the plotting fn)
+
+    Keyword Argumens: 
+        mistakes_dict : dictionary object, required 
+            the mistakes_dict object returned from the poll_plots() fn with the plot_id
+            in numeric representation as the primary set of keys, the dict has the following 
+            format: {'plot_id':{'gt': 1, 'pred': 0, 'vote': 0.38402457757296465}}
+
+        voting_method : string, required
+            the voting method used when constructing the mistakes_dict (the one used
+            with the corresponding run of the poll_plots() fn)
+
+        plot_id_dict : string, required 
+            the pickel file that determines the relationship between plot_id 
+            and numeric value that can be understood by the torch dataloader
+
+        date_dict : string, required 
+            pickel file that determines the relationship between the date 
+            of capture and the numeric value that can be understood by the torch dataloader
+
+        saved_model : torch.model(), required 
+            the loaded/instantiated model to be used        
+
+        device : torch.device(), required 
+            the device to use ('cuda'/'cuda:0' or 'cpu')
+
+        batch_size : int, optional (default is 128) 
+            the number of images to be returned each iteration of the dataloader
+
+        collect_fifty : bool optional (default is False) 
+            a flag to determine if the function will only collect 50 examples for
+            each incorretly voted plot or plot-date combo
+
+    """
+    
+    #collect all of the plot_id's (keys) of the mistakes dict
+    mistakes_keys = list(mistakes_dict.keys())
+    
+    #set model mode
+    saved_model.eval()
+        
+    collected_mistakes_dict = {}
+    #{'plot_id':{'imgs':[],'predicted_labels':[], 'groundtruth_labels':[], 'plot_id_GT':[], 'pred_confs':[]}}
+    #{'plot_id_date':{'imgs':[],'predicted_labels':[], 'groundtruth_labels':[], 'plot_id_GT':[], 'pred_confs':[]}}
+        
+    #create validation transforms
+    transform = transforms.Compose([transforms.CenterCrop((224,224)), transforms.ToTensor()])
+    
+    #build torch dataset/dataloader
+    data = WheatAwnDataset(csv_filepath=data_csv, transform=transform)
+    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
+
+    #make sure to not accumulate gradients
+    with torch.no_grad():
+
+        for key in mistakes_keys:
+            
+            print("looking for: ", key, "mistakes_dict: ",mistakes_dict[key])
+            
+            if collect_fifty:
+                #if we're only finding 50 then break after finding 50 examples
+                b=0
+            
+            #collect the relevant data for each missed prediction in lists
+            imgs = []
+            predicted_labels = []
+            groundtruth_labels = []
+            plot_id_GT = []
+            pred_confs = []
+            
+            #track correct and incorrect predictions for ratio
+            corrects = 0
+            incorrects = 0
+
+            progress_bar = tqdm(dataloader, total=int(len(dataloader)), desc=f"Progress: ")
+
+            for step, data in enumerate(progress_bar):
+                
+                if collect_fifty:
+                    if b==50:
+                        print("-50 found for key: ", key)
+                        break
+
+                images, labels, plot_ids, dates = data[0], data[1], data[2], data[3]
+
+                #send the tensors to the device (GPU)
+                images = images.to(device)
+                labels = labels.to(device)
+
+                #images = images.float() #uncomment if using read_image() from torch
+                outputs = saved_model(images)
+
+                #find the predicted classes indicies
+                _, preds = torch.max(outputs, 1)
+
+                #collect the 'confidence' using softmax
+                soft_preds = torch.softmax(outputs, 1)
+
+                for index, plot_id in enumerate(plot_ids):
+                    if voting_method == 'plot':
+                        #make the numeric plot_id a string 
+                        #so it can be a key in a dictionary
+                        plot_id_str = str(plot_id.item())
+
+                        #if we've found the right plot and it's a bad prediction, add it
+                        if plot_id_str == key and preds[index] != labels[index]:
+                            incorrects+=1
+
+                            imgs.append(tensor_operations.tensor_to_image(images[index]))
+                            predicted_labels.append(preds[index].detach().cpu().numpy())
+                            groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                            plot_id_GT.append(plot_id)
+                            pred_confs.append(soft_preds[index].cpu().numpy()[preds[index].detach().cpu().item()])
+                            
+                            if collect_fifty:
+                                b+=1 #add to breaker when we've accumulated another false preditcion
+
+                                if b==50:
+                                    #we've collected 50 (b == 50)
+                                    print("50 found for key: ", key)
+                                    break
+                                    
+                        elif plot_id_str == key and preds[index] == labels[index]:
+                            corrects+=1
+                                    
+                    if voting_method == 'date':
+                        #make the numeric plot_id a string 
+                        #so it can be a key in a dictionary
+                        plot_id_str = str(plot_id.item())
+
+                        #make the date of the photo's collection a string too
+                        date_str = str(dates[index].item())
+                        
+                        #remeber the key is the plot_id and the date with a '_' between them
+                        key_str = plot_id_str + "_" + date_str
+                        
+                        #check for the key and a miss
+                        if key_str == key and preds[index] != labels[index]:
+                            incorrects+=1
+                            
+                            #if we've found the correct key then get the right datums for the key
+                            imgs.append(tensor_operations.tensor_to_image(images[index]))
+                            predicted_labels.append(preds[index].detach().cpu().numpy())
+                            groundtruth_labels.append(labels[index].detach().cpu().numpy())
+                            plot_id_GT.append(plot_id)
+                            pred_confs.append(soft_preds[index].cpu().numpy()[preds[index].detach().cpu().item()])
+                            
+                            if collect_fifty:
+                                b+=1 #add to breaker when we've accumulated another false preditcion
+
+                                if b==50:
+                                    #we've collected 50 (b == 50)
+                                    print("50 found for key: ", key)
+                                    break
+                            
+                        elif key_str == key and preds[index] == labels[index]:
+                            corrects+=1
+    
+            #return the collection for that key
+            collected_mistakes_dict[key]={'imgs':imgs,
+                                          'predicted_labels':predicted_labels, 
+                                          'groundtruth_labels':groundtruth_labels, 
+                                          'plot_id_GT':plot_id_GT, 
+                                          'pred_confs':pred_confs,
+                                          'corrects':corrects,
+                                          'incorrects':incorrects}
+            
+            #report
+            total_collected = len(collected_mistakes_dict[key]['predicted_labels'])
+            print(f"finished collection for key {key}, total for key: {total_collected}")
+                        
+    return collected_mistakes_dict
 
 
 def get_montages(model_name):
