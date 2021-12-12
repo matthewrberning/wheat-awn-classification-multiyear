@@ -294,8 +294,6 @@ def poll_plots(data_csv,
 def collect_poll_mistakes(mistakes_dict,
                           voting_method,
                           data_csv,
-                          plot_id_dict,
-                          date_dict,
                           saved_model,
                           device,
                           batch_size=128,
@@ -319,14 +317,6 @@ def collect_poll_mistakes(mistakes_dict,
         voting_method : string, required
             the voting method used when constructing the mistakes_dict (the one used
             with the corresponding run of the poll_plots() fn)
-
-        plot_id_dict : string, required 
-            the pickel file that determines the relationship between plot_id 
-            and numeric value that can be understood by the torch dataloader
-
-        date_dict : string, required 
-            pickel file that determines the relationship between the date 
-            of capture and the numeric value that can be understood by the torch dataloader
 
         saved_model : torch.model(), required 
             the loaded/instantiated model to be used        
@@ -925,11 +915,10 @@ def collect_fifty_random_preds(data_csv, saved_model, device, find_incorrects=Tr
 
 
 
-def iterate_plotting(collected_mistakes_dict, 
-                     model_name, 
+def iterate_plotting(model_name, 
                      model_pth, 
-                     plot_id_dict, 
-                     date_dict,
+                     plot_id_dict_path, 
+                     date_dict_path,
                      data_csv, 
                      voting_method,
                      save_dir,
@@ -949,8 +938,8 @@ def iterate_plotting(collected_mistakes_dict,
 
     #vote and get predictions and mistakes
     _, _, mistakes_dict = poll_plots(data_csv=data_csv, 
-                                     plot_id_dict=plot_id_dict, 
-                                     date_dict=date_dict, 
+                                     plot_id_dict=input_validation.open_dict_from_pkl(plot_id_dict_path), 
+                                     date_dict=input_validation.open_dict_from_pkl(date_dict_path), 
                                      saved_model=saved_model, 
                                      device=device, 
                                      confusion_matrix_title=confusion_matrix_title, 
@@ -963,8 +952,6 @@ def iterate_plotting(collected_mistakes_dict,
     collected_mistakes_dict = collect_poll_mistakes(mistakes_dict=mistakes_dict, 
                                                     voting_method=voting_method,
                                                     data_csv = data_csv,
-                                                    plot_id_dict = plot_id_dict,
-                                                    date_dict=date_dict,
                                                     saved_model=saved_model,
                                                     device=device,
                                                     batch_size=batch_size,
@@ -1007,7 +994,7 @@ def iterate_plotting(collected_mistakes_dict,
                                       plot_id_GT=collected_mistakes_dict[key]['plot_id_GT'][start:end], 
                                       fig_title=title_str, 
                                       model_pth_name=model_pth_name, 
-                                      plot_id_dict=plot_id_dict, 
+                                      plot_id_dict=input_validation.open_dict_from_pkl(plot_id_dict_path), 
                                       pred_confs=collected_mistakes_dict[key]['pred_confs'][start:end],
                                       save_prefix=save_prefix,
                                       count_saves=it,
