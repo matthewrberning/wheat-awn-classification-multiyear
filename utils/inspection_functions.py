@@ -406,7 +406,7 @@ def collect_poll_mistakes(mistakes_dict,
                         if plot_id_str == key and preds[index] != labels[index]:
                             incorrects+=1
 
-                            imgs.append(tensor_operations.tensor_to_image(images[index]))
+                            imgs.append(tensor_to_image(images[index]))
                             predicted_labels.append(preds[index].detach().cpu().numpy())
                             groundtruth_labels.append(labels[index].detach().cpu().numpy())
                             plot_id_GT.append(plot_id)
@@ -439,7 +439,7 @@ def collect_poll_mistakes(mistakes_dict,
                             incorrects+=1
                             
                             #if we've found the correct key then get the right datums for the key
-                            imgs.append(tensor_operations.tensor_to_image(images[index]))
+                            imgs.append(tensor_to_image(images[index]))
                             predicted_labels.append(preds[index].detach().cpu().numpy())
                             groundtruth_labels.append(labels[index].detach().cpu().numpy())
                             plot_id_GT.append(plot_id)
