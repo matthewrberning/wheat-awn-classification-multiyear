@@ -266,11 +266,13 @@ def poll_plots(data_csv,
             if verbose: print("plot_id string: ", date_string, "\n")
 
     #report
-    print("total awned plots: ",awns,"\ntotal awnless plots: ", awnless)
-    print("awned pct. correct: ", round((awn_corrects/awns), 2)*100, "%")
-    print("awnless pct. correct: ", round((awnless_corrects/awnless), 2)*100, "%")
-    print("total pct. correct: ", round(((awnless_corrects+awn_corrects)/(awnless+awns)), 2)*100, "%")
-
+    print("\nVote Summary:")
+    print(" - Total Plots AWNED:   ", awns)
+    print(" - Total Plots AWNLESS: ", awnless)
+    print("   [ AWNED ] pct. Correct: ", round((awn_corrects/awns), 2)*100, "%")
+    print("   [AWNLESS] pct. Correct: ", round((awnless_corrects/awnless), 2)*100, "%")
+    print("   [ TOTAL ] pct. Correct: ", round(((awnless_corrects+awn_corrects)/(awnless+awns)), 2)*100, "%")
+    print("\n")
     # Calculate the confusion matrix
     conf_matrix = confusion_matrix(y_true=ground_truths, y_pred=predictions)
 
@@ -938,6 +940,8 @@ def iterate_plotting(model_name,
     plot_id_dict=open_dict_from_pkl(plot_id_dict_path)
     date_dict=open_dict_from_pkl(date_dict_path)
 
+    print("\ncollecting vote-predictions\n")
+
     #vote and get predictions and mistakes
     _, _, mistakes_dict = poll_plots(data_csv=data_csv, 
                                      plot_id_dict=plot_id_dict, 
@@ -949,16 +953,20 @@ def iterate_plotting(model_name,
                                      verbose=verbose)
 
 
+    #report
+    print("\ncollecting vote-mistakes\n")
 
     #collect just the mistakes to visualize
     collected_mistakes_dict = collect_poll_mistakes(mistakes_dict=mistakes_dict, 
                                                     voting_method=voting_method,
-                                                    data_csv = data_csv,
+                                                    data_csv=data_csv,
                                                     saved_model=saved_model,
                                                     device=device,
                                                     batch_size=batch_size,
                                                     collect_fifty=False)
 
+    #report
+    print("\nplotting vote-mistake montages\n")
 
     #get just the .pth name
     model_pth_name = model_pth.split('/')[-1]
@@ -978,12 +986,19 @@ def iterate_plotting(model_name,
         if voting_method == 'plot':
             plot_str = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key))]
             title_str = f"Incorrect Predictions for Plot: {plot_str} [VOTE]"
+
+            #report
+            print(f"plotting {its} mistake-montages - plot: {plot_str} (key: {key})") 
             
         if voting_method == 'date':
             plot_str = list(plot_id_dict.keys())[list(plot_id_dict.values()).index(int(key.split('_')[0]))]
             date_str = list(date_dict.keys())[list(date_dict.values()).index(int(key.split('_')[-1]))]
             
             title_str = f"Incorrect Predictions for Plot|Date: {plot_str}|{date_str} [VOTE]"
+
+            #report
+            print(f"plotting {its} mistake-montages - plot: {plot_str}, date: {date_str} (key: {key})") 
+
         
         for it in range(its):
 
@@ -996,11 +1011,12 @@ def iterate_plotting(model_name,
                                       plot_id_GT=collected_mistakes_dict[key]['plot_id_GT'][start:end], 
                                       fig_title=title_str, 
                                       model_pth_name=model_pth_name, 
-                                      plot_id_dict=open_dict_from_pkl(plot_id_dict_path), 
+                                      plot_id_dict=plot_id_dict, 
                                       pred_confs=collected_mistakes_dict[key]['pred_confs'][start:end],
                                       save_prefix=save_prefix,
                                       count_saves=it,
                                       save_dir=save_dir)
+            print("    -")
 
             #move to next group
             start+=50
