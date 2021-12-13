@@ -935,11 +935,13 @@ def iterate_plotting(model_name,
     print("\nsending model to device: ", device)
     saved_model = saved_model.to(device)
 
+    plot_id_dict=open_dict_from_pkl(plot_id_dict_path)
+    date_dict=open_dict_from_pkl(date_dict_path)
 
     #vote and get predictions and mistakes
     _, _, mistakes_dict = poll_plots(data_csv=data_csv, 
-                                     plot_id_dict=open_dict_from_pkl(plot_id_dict_path), 
-                                     date_dict=open_dict_from_pkl(date_dict_path), 
+                                     plot_id_dict=plot_id_dict, 
+                                     date_dict=date_dict, 
                                      saved_model=saved_model, 
                                      device=device, 
                                      confusion_matrix_title=' ', 
